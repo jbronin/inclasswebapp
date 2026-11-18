@@ -13,3 +13,6 @@ Use the numbered folders for supporting project files:
 Save every new file in the appropriate root location or numbered folder. Add
 files to the root only when they are one of the project-level files listed
 above; otherwise choose the matching numbered folder.
+
+record every prompt in prompt.md with timestamp
+and add a summary of what you did after the prompt
