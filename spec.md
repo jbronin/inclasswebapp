@@ -11,17 +11,25 @@ A civil engineering student checking a homework beam, or an engineer
 sizing a floor beam or deck joist.
 
 ## Inputs
-- Support type: Simply supported or Cantilever (fixed at the left end).
-- Span: 4 to 40 ft, set with a slider and a number box that stay in sync.
+- Support type: radio buttons for Simply supported or Cantilever (fixed at
+  the left end); default Simply supported.
+- Span (ft): 4 to 40, default 20; slider and synchronized number box.
 - Loads, listed in a panel where each can be edited or removed:
-  - Point loads: magnitude (kips, downward positive) and position (ft).
-    A new point load starts at midspan (at the free end of a cantilever).
-  - Uniform loads: magnitude (kips/ft) and start and end positions (ft).
+  - Point loads: downward magnitude (kip), 0 to 10,000, default 0, entered
+    with a number box; position (ft), 0 to 50 in 1 ft steps, default at
+    midspan (at the free end of a cantilever), set with a slider and
+    synchronized number box. Dragging a point load snaps to 1 ft. Point
+    loads outside the beam are ignored.
+  - Uniform loads: downward magnitude (kip/ft), 0 to 10,000, entered with a
+    number box. The startup example uses 1 kip/ft; a newly added uniform load
+    defaults to 0 kip/ft. Start and end positions (ft) range from 0 to 50 in
+    1 ft steps, defaulting to 0 and the span, and use sliders with synchronized
+    number boxes. Loads extending past the beam are cut off at the end.
   - "Add point load" and "Add uniform load" buttons.
-  - Point loads can also be dragged along the beam in the drawing,
-    snapping to 0.25 ft.
-  - Loads that extend past the end of the beam are cut off at the end.
-- Material and section, from these tables:
+  - A newly added point load has magnitude 0 and starts at midspan (at the
+    free end of a cantilever).
+- Material and section: radio buttons for the choices in these tables;
+  default Steel W12x26.
 
   Steel W-shapes (E = 29,000 ksi, allowable bending stress Fb = 30 ksi):
 
@@ -44,8 +52,8 @@ sizing a floor beam or deck joist.
   | 2x10    | 98.93     | 21.39     |
   | 2x12    | 177.98    | 31.64     |
 
-- Deflection limit: L/240 or L/360 (default L/360).
-- Self-weight is ignored.
+- Deflection limit: radio buttons for L/240 or L/360 (default L/360).
+- Self-weight is ignored and is not user-adjustable.
 
 ## Calculations
 - Reactions from statics.
