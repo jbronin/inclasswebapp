@@ -1,10 +1,1223 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Web App</title>
-  </head>
-  <body>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Beam Designer</title>
+  <style>
+    :root {
+      --accent:#2563eb; --accent-dark:#1d4ed8; --ink:#172033;
+      --muted:#667085; --line:#dde3ed; --canvas:#f4f7fb;
+      --green:#16865b; --amber:#c88616; --red:#c43d3d;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-width:320px; color:var(--ink); background:var(--canvas);
+      font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    header {
+      height:68px; display:flex; align-items:center; padding:0 28px;
+      background:#fff; border-bottom:1px solid var(--line);
+    }
+    .brand { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:750; letter-spacing:-.02em; }
+    .brand-mark {
+      width:34px; height:34px; display:grid; place-items:center; border-radius:9px;
+      color:#fff; background:var(--accent); font-size:18px;
+    }
+    .layout { display:grid; grid-template-columns:330px minmax(0,1fr); min-height:calc(100vh - 68px); }
+    .sidebar {
+      height:calc(100vh - 68px); overflow-y:auto; padding:20px;
+      background:#fff; border-right:1px solid var(--line);
+    }
+    .main { min-width:0; padding:22px; }
+    .card {
+      background:#fff; border:1px solid #e7ebf2; border-radius:12px;
+      box-shadow:0 3px 14px rgba(21,35,59,.055);
+    }
+    .sidebar-section { padding:0 0 18px; margin:0 0 18px; border-bottom:1px solid #edf0f5; }
+    .sidebar-section:last-child { margin-bottom:0; border-bottom:0; }
+    .section-title {
+      margin:0 0 12px; font-size:13px; font-weight:800;
+      letter-spacing:.04em; text-transform:uppercase; color:#3d4a60;
+    }
+    .control { margin-bottom:14px; }
+    .control:last-child { margin-bottom:0; }
+    .control-label, legend {
+      display:block; margin-bottom:7px; color:#344054;
+      font-size:12px; font-weight:700;
+    }
+    fieldset { min-width:0; margin:0; padding:0; border:0; }
+    .radio-row { display:grid; gap:7px; }
+    .radio-row.two { grid-template-columns:1fr 1fr; }
+    .radio-option {
+      display:flex; align-items:center; gap:8px; min-height:38px; padding:8px 10px;
+      border:1px solid var(--line); border-radius:8px; background:#fff;
+      font-size:13px; cursor:pointer;
+    }
+    .radio-option:has(input:checked) {
+      border-color:#91b3f8; background:#f2f6ff; color:#1d4ed8; font-weight:700;
+    }
+    input[type="radio"] { accent-color:var(--accent); }
+    .sync-row { display:grid; grid-template-columns:1fr 82px; align-items:center; gap:10px; }
+    input[type="range"] { width:100%; accent-color:var(--accent); }
+    input[type="number"] {
+      width:100%; height:38px; padding:7px 8px; border:1px solid var(--line);
+      border-radius:8px; color:var(--ink); background:#fff; font:inherit; font-size:13px;
+    }
+    .load-card {
+      margin-top:9px; padding:10px; border:1px solid #e5e9f1;
+      border-radius:9px; background:#fafbfc;
+    }
+    .load-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+    .load-name { font-size:12px; font-weight:800; }
+    .icon-button, .text-button, .use-button { border:0; cursor:pointer; font:inherit; }
+    .icon-button {
+      width:28px; height:28px; border-radius:7px; color:#7a8496;
+      background:transparent; font-size:18px;
+    }
+    .icon-button:hover { background:#edf1f7; }
+    .add-row { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:9px; }
+    .text-button {
+      min-height:36px; border:1px solid #ccd7ea; border-radius:8px;
+      color:var(--accent-dark); background:#fff; font-size:12px; font-weight:750;
+    }
+    .text-button:hover { background:#f4f7ff; }
+    .material-options {
+      display:grid; gap:6px; max-height:286px; overflow-y:auto; padding-right:3px;
+    }
+    .section-option { min-height:34px; padding:7px 9px; }
+    .section-option small { margin-left:auto; color:var(--muted); font-size:10px; font-weight:600; }
+    .results { display:grid; gap:14px; }
+    .drawing-card { padding:16px 18px 10px; }
+    .card-heading-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+    .card-heading { margin:0; font-size:14px; font-weight:800; }
+    .model-label { color:var(--muted); font-size:11px; }
+    .beam-svg { display:block; width:100%; height:168px; }
+    .diagram-card { padding:12px 18px 8px; }
+    .diagram-grid { display:grid; gap:2px; }
+    .diagram svg { display:block; width:100%; height:132px; }
+    .diagram-title {
+      display:flex; align-items:baseline; justify-content:space-between; height:18px;
+      padding:0 2px; font-size:12px; font-weight:800;
+    }
+    .diagram-title span:last-child { color:var(--muted); font-size:10px; font-weight:600; }
+    .checks-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .check-card { position:relative; min-height:136px; padding:15px 16px; }
+    .check-card:hover::after {
+      content:attr(data-tooltip); position:absolute; z-index:5; left:16px;
+      bottom:calc(100% - 8px); width:min(300px,calc(100% - 32px)); padding:9px 10px;
+      border-radius:8px; color:#fff; background:#253044;
+      box-shadow:0 8px 22px rgba(21,35,59,.18); font-size:11px; line-height:1.45;
+    }
+    .check-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .check-name { font-size:13px; font-weight:800; }
+    .pass {
+      padding:4px 8px; border-radius:999px; color:#08784b;
+      background:#daf4e8; font-size:11px; font-weight:850;
+    }
+    .check-values { display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px; }
+    .check-values strong { display:block; margin-top:2px; font-size:15px; }
+    .check-values .allowable { text-align:right; color:var(--muted); }
+    .ratio-track { height:8px; overflow:hidden; border-radius:99px; background:#edf0f4; }
+    .ratio-fill { height:100%; border-radius:99px; background:var(--green); }
+    .ratio-label { margin-top:6px; color:var(--muted); font-size:10px; text-align:right; }
+    .suggestion {
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      min-height:58px; padding:10px 12px 10px 16px;
+    }
+    .suggestion-copy { font-size:12px; color:var(--muted); }
+    .suggestion-copy strong { color:var(--ink); font-size:13px; }
+    .use-button {
+      flex:none; min-height:36px; padding:0 13px; border-radius:8px;
+      color:#fff; background:var(--accent); font-size:12px; font-weight:800;
+    }
+    .use-button:hover { background:var(--accent-dark); }
+    .crosshair { pointer-events:none; }
+    @media (max-width:900px) {
+      .layout { grid-template-columns:280px minmax(0,1fr); }
+      .main,.sidebar { padding:14px; }
+    }
+    @media (max-width:700px) {
+      header { height:58px; padding:0 16px; }
+      .layout { display:block; }
+      .sidebar { height:auto; border-right:0; border-bottom:1px solid var(--line); }
+      .main { padding:12px; }
+      .checks-row { grid-template-columns:1fr; }
+      .beam-svg { height:150px; }
+    }
+  </style>
+</head>
+<body>
+  <header><div class="brand"><div class="brand-mark">B</div>Beam Designer</div></header>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Beam inputs">
+      <section class="sidebar-section">
+        <h2 class="section-title">Beam</h2>
+        <fieldset class="control">
+          <legend>Support type</legend>
+          <div class="radio-row two">
+            <label class="radio-option"><input type="radio" name="support" value="simple" checked> Simply supported</label>
+            <label class="radio-option"><input type="radio" name="support" value="cantilever"> Cantilever</label>
+          </div>
+        </fieldset>
+        <div class="control">
+          <label class="control-label" for="span-range">Span (ft)</label>
+          <div class="sync-row">
+            <input id="span-range" type="range" min="4" max="40" value="20" step="1">
+            <input id="span-number" type="number" min="4" max="40" value="20" step="1" aria-label="Span in feet">
+          </div>
+        </div>
+      </section>
+
+      <section class="sidebar-section">
+        <h2 class="section-title">Loads</h2>
+        <div id="point-loads">
+          <div class="control-label">Point loads</div>
+          <div class="load-card" data-load="point">
+            <div class="load-card-head">
+              <span class="load-name">Point load 1</span>
+              <button class="icon-button" type="button" title="Remove point load" aria-label="Remove point load">×</button>
+            </div>
+            <div class="control">
+              <label class="control-label" for="point-mag">Magnitude (kip)</label>
+              <input id="point-mag" type="number" min="0" max="10000" value="0" step="0.1">
+            </div>
+            <div class="control">
+              <label class="control-label" for="point-position-range">Position (ft)</label>
+              <div class="sync-row">
+                <input id="point-position-range" type="range" min="0" max="20" value="10" step="1">
+                <input id="point-position-number" type="number" min="0" max="20" value="10" step="1" aria-label="Point load position in feet">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="uniform-loads">
+          <div class="control-label" style="margin-top:12px">Uniform loads</div>
+          <div class="load-card" data-load="uniform">
+            <div class="load-card-head">
+              <span class="load-name">Uniform load 1</span>
+              <button class="icon-button" type="button" title="Remove uniform load" aria-label="Remove uniform load">×</button>
+            </div>
+            <div class="control">
+              <label class="control-label" for="uniform-mag">Magnitude (kip/ft)</label>
+              <input id="uniform-mag" type="number" min="0" max="10000" value="1" step="0.01">
+            </div>
+            <div class="control">
+              <label class="control-label" for="uniform-start-range">Start (ft)</label>
+              <div class="sync-row">
+                <input id="uniform-start-range" type="range" min="0" max="50" value="0" step="1">
+                <input id="uniform-start-number" type="number" min="0" max="50" value="0" step="1" aria-label="Uniform load start in feet">
+              </div>
+            </div>
+            <div class="control">
+              <label class="control-label" for="uniform-end-range">End (ft)</label>
+              <div class="sync-row">
+                <input id="uniform-end-range" type="range" min="0" max="50" value="20" step="1">
+                <input id="uniform-end-number" type="number" min="0" max="50" value="20" step="1" aria-label="Uniform load end in feet">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="add-row">
+          <button id="add-point" class="text-button" type="button">+ Point load</button>
+          <button id="add-uniform" class="text-button" type="button">+ Uniform load</button>
+        </div>
+      </section>
+
+      <section class="sidebar-section">
+        <h2 class="section-title">Material &amp; section</h2>
+        <fieldset class="control">
+          <legend>Material</legend>
+          <div class="radio-row two">
+            <label class="radio-option"><input type="radio" name="material" value="steel" checked> Steel</label>
+            <label class="radio-option"><input type="radio" name="material" value="lumber"> Lumber</label>
+          </div>
+        </fieldset>
+        <fieldset class="control">
+          <legend id="section-legend">Steel W-shapes</legend>
+          <div class="material-options" id="steel-sections">
+            <label class="radio-option section-option"><input type="radio" name="section" value="W8x10"> W8x10 <small>Ix 30.8</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="W10x12"> W10x12 <small>Ix 53.8</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="W12x26" checked> W12x26 <small>Ix 204</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="W14x22"> W14x22 <small>Ix 199</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="W16x26"> W16x26 <small>Ix 301</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="W18x35"> W18x35 <small>Ix 510</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="W21x44"> W21x44 <small>Ix 843</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="W24x55"> W24x55 <small>Ix 1350</small></label>
+          </div>
+          <div class="material-options" id="lumber-sections" hidden>
+            <label class="radio-option section-option"><input type="radio" name="section" value="2x8"> 2x8 <small>Ix 47.63</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="2x10"> 2x10 <small>Ix 98.93</small></label>
+            <label class="radio-option section-option"><input type="radio" name="section" value="2x12"> 2x12 <small>Ix 177.98</small></label>
+          </div>
+        </fieldset>
+        <fieldset class="control">
+          <legend>Deflection limit</legend>
+          <div class="radio-row two">
+            <label class="radio-option"><input type="radio" name="limit" value="240"> L/240</label>
+            <label class="radio-option"><input type="radio" name="limit" value="360" checked> L/360</label>
+          </div>
+        </fieldset>
+      </section>
+    </aside>
+
+    <main class="main">
+      <div class="results">
+        <section class="card drawing-card">
+          <div class="card-heading-row">
+            <h2 class="card-heading">Beam &amp; loading</h2>
+            <div class="model-label">20 ft span · Simply supported · W12x26</div>
+          </div>
+          <svg id="beam-drawing" class="beam-svg" viewBox="0 0 900 168" role="img" aria-label="Beam with supports and loads">
+            <defs>
+              <marker id="arrow-down" markerWidth="8" markerHeight="8" refX="4" refY="7" orient="auto">
+                <path d="M1 1 L4 7 L7 1 Z" fill="#2563eb"/>
+              </marker>
+            </defs>
+            <line x1="125" y1="84" x2="775" y2="84" stroke="#344054" stroke-width="7" stroke-linecap="round"/>
+            <polygon points="125,84 103,116 147,116" fill="#cfd6e2"/>
+            <rect x="96" y="116" width="58" height="5" rx="2" fill="#344054"/>
+            <polygon points="775,84 753,116 797,116" fill="#cfd6e2"/>
+            <rect x="746" y="116" width="58" height="5" rx="2" fill="#344054"/>
+            <g stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-down)">
+              <line x1="150" y1="34" x2="150" y2="72"/><line x1="181" y1="34" x2="181" y2="72"/>
+              <line x1="212" y1="34" x2="212" y2="72"/><line x1="243" y1="34" x2="243" y2="72"/>
+              <line x1="274" y1="34" x2="274" y2="72"/><line x1="305" y1="34" x2="305" y2="72"/>
+              <line x1="336" y1="34" x2="336" y2="72"/><line x1="367" y1="34" x2="367" y2="72"/>
+              <line x1="398" y1="34" x2="398" y2="72"/><line x1="429" y1="34" x2="429" y2="72"/>
+              <line x1="460" y1="34" x2="460" y2="72"/><line x1="491" y1="34" x2="491" y2="72"/>
+              <line x1="522" y1="34" x2="522" y2="72"/><line x1="553" y1="34" x2="553" y2="72"/>
+              <line x1="584" y1="34" x2="584" y2="72"/><line x1="615" y1="34" x2="615" y2="72"/>
+              <line x1="646" y1="34" x2="646" y2="72"/><line x1="677" y1="34" x2="677" y2="72"/>
+              <line x1="708" y1="34" x2="708" y2="72"/><line x1="739" y1="34" x2="739" y2="72"/>
+            </g>
+            <line x1="125" y1="128" x2="775" y2="128" stroke="#98a2b3" stroke-width="1"/>
+            <line x1="125" y1="124" x2="125" y2="132" stroke="#98a2b3"/>
+            <line x1="450" y1="124" x2="450" y2="132" stroke="#98a2b3"/>
+            <line x1="775" y1="124" x2="775" y2="132" stroke="#98a2b3"/>
+            <text x="125" y="145" text-anchor="middle" fill="#667085" font-size="11">0 ft</text>
+            <text x="450" y="145" text-anchor="middle" fill="#667085" font-size="11">10 ft</text>
+            <text x="775" y="145" text-anchor="middle" fill="#667085" font-size="11">20 ft</text>
+            <text x="125" y="25" text-anchor="middle" fill="#344054" font-size="12" font-weight="700">Rₗ = 10.0 k</text>
+            <text x="775" y="25" text-anchor="middle" fill="#344054" font-size="12" font-weight="700">Rᵣ = 10.0 k</text>
+          </svg>
+        </section>
+
+        <section class="card diagram-card">
+          <div class="diagram-grid">
+            <div class="diagram">
+              <div class="diagram-title"><span>Shear</span><span>kips</span></div>
+              <svg id="shear-diagram" viewBox="0 0 900 132" role="img" aria-label="Shear diagram">
+                <rect x="60" y="12" width="780" height="108" fill="#fafbfe"/>
+                <line x1="60" y1="66" x2="840" y2="66" stroke="#aeb7c5"/>
+                <line x1="60" y1="12" x2="60" y2="120" stroke="#dfe4ec"/>
+                <line x1="450" y1="12" x2="450" y2="120" stroke="#edf0f5" stroke-dasharray="3 5"/>
+                <line x1="840" y1="12" x2="840" y2="120" stroke="#dfe4ec"/>
+                <path d="M60 66 L60 20 L450 20 L450 112 L840 112 L840 66 Z" fill="#84a9f4" fill-opacity=".55" stroke="#2563eb" stroke-width="2"/>
+                <circle cx="450" cy="20" r="3.5" fill="#2563eb"/>
+                <text x="450" y="10" text-anchor="middle" fill="#344054" font-size="11" font-weight="750">+10.0 k at 0 ft</text>
+                <text x="60" y="128" text-anchor="middle" fill="#667085" font-size="10">0</text>
+                <text x="450" y="128" text-anchor="middle" fill="#667085" font-size="10">10 ft</text>
+                <text x="840" y="128" text-anchor="middle" fill="#667085" font-size="10">20 ft</text>
+                <line class="crosshair" x1="450" y1="12" x2="450" y2="120" stroke="#94a3b8" stroke-dasharray="4 4"/>
+              </svg>
+            </div>
+            <div class="diagram">
+              <div class="diagram-title"><span>Moment</span><span>kip-ft</span></div>
+              <svg id="moment-diagram" viewBox="0 0 900 132" role="img" aria-label="Moment diagram">
+                <rect x="60" y="12" width="780" height="108" fill="#fafbfe"/>
+                <line x1="60" y1="66" x2="840" y2="66" stroke="#aeb7c5"/>
+                <line x1="60" y1="12" x2="60" y2="120" stroke="#dfe4ec"/>
+                <line x1="450" y1="12" x2="450" y2="120" stroke="#edf0f5" stroke-dasharray="3 5"/>
+                <line x1="840" y1="12" x2="840" y2="120" stroke="#dfe4ec"/>
+                <path d="M60 66 Q450 -2 840 66 L840 66 Z" fill="#84a9f4" fill-opacity=".55" stroke="#2563eb" stroke-width="2"/>
+                <circle cx="450" cy="66" r="3.5" fill="#2563eb"/>
+                <text x="450" y="10" text-anchor="middle" fill="#344054" font-size="11" font-weight="750">50.0 kip-ft at 10 ft</text>
+                <text x="60" y="128" text-anchor="middle" fill="#667085" font-size="10">0</text>
+                <text x="450" y="128" text-anchor="middle" fill="#667085" font-size="10">10 ft</text>
+                <text x="840" y="128" text-anchor="middle" fill="#667085" font-size="10">20 ft</text>
+                <line class="crosshair" x1="450" y1="12" x2="450" y2="120" stroke="#94a3b8" stroke-dasharray="4 4"/>
+              </svg>
+            </div>
+            <div class="diagram">
+              <div class="diagram-title"><span>Deflected shape</span><span>inches</span></div>
+              <svg id="deflection-diagram" viewBox="0 0 900 132" role="img" aria-label="Deflected shape">
+                <rect x="60" y="12" width="780" height="108" fill="#fafbfe"/>
+                <line x1="60" y1="66" x2="840" y2="66" stroke="#aeb7c5"/>
+                <line x1="60" y1="12" x2="60" y2="120" stroke="#dfe4ec"/>
+                <line x1="450" y1="12" x2="450" y2="120" stroke="#edf0f5" stroke-dasharray="3 5"/>
+                <line x1="840" y1="12" x2="840" y2="120" stroke="#dfe4ec"/>
+                <path d="M60 66 Q450 124 840 66 L840 66 Z" fill="#84a9f4" fill-opacity=".55" stroke="#2563eb" stroke-width="2"/>
+                <circle cx="450" cy="66" r="3.5" fill="#2563eb"/>
+                <text x="450" y="10" text-anchor="middle" fill="#344054" font-size="11" font-weight="750">−0.609 in at 10 ft</text>
+                <text x="60" y="128" text-anchor="middle" fill="#667085" font-size="10">0</text>
+                <text x="450" y="128" text-anchor="middle" fill="#667085" font-size="10">10 ft</text>
+                <text x="840" y="128" text-anchor="middle" fill="#667085" font-size="10">20 ft</text>
+                <line class="crosshair" x1="450" y1="12" x2="450" y2="120" stroke="#94a3b8" stroke-dasharray="4 4"/>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <section class="checks-row" aria-label="Design checks">
+          <article class="card check-card" data-tooltip="fb = |Mmax| × 12 / Sx. The section passes when bending stress is below the allowable stress.">
+            <div class="check-head"><span class="check-name">Bending</span><span class="pass">PASS</span></div>
+            <div class="check-values">
+              <div>Actual<strong>17.96 ksi</strong></div>
+              <div class="allowable">Allowable<strong>30.00 ksi</strong></div>
+            </div>
+            <div class="ratio-track"><div class="ratio-fill" style="width:59.87%"></div></div>
+            <div class="ratio-label">59.9% of allowable</div>
+          </article>
+          <article class="card check-card" data-tooltip="ymax is the maximum deflection. The limit is L/360, using span L in inches.">
+            <div class="check-head"><span class="check-name">Deflection</span><span class="pass">PASS</span></div>
+            <div class="check-values">
+              <div>Actual<strong>0.609 in</strong></div>
+              <div class="allowable">Allowable (L/360)<strong>0.667 in</strong></div>
+            </div>
+            <div class="ratio-track"><div class="ratio-fill" style="width:91.31%"></div></div>
+            <div class="ratio-label">91.3% of allowable</div>
+          </article>
+        </section>
+
+        <section class="card suggestion">
+          <div class="suggestion-copy">Lightest passing section<br><strong>W12x26 — both checks pass</strong></div>
+          <button class="use-button" type="button">Use W12x26</button>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const STEEL_SECTIONS = [
+      { name:"W8x10", Ix:30.8, Sx:7.81, weight:10 },
+      { name:"W10x12", Ix:53.8, Sx:10.9, weight:12 },
+      { name:"W12x26", Ix:204, Sx:33.4, weight:26 },
+      { name:"W14x22", Ix:199, Sx:29.0, weight:22 },
+      { name:"W16x26", Ix:301, Sx:38.4, weight:26 },
+      { name:"W18x35", Ix:510, Sx:57.6, weight:35 },
+      { name:"W21x44", Ix:843, Sx:81.6, weight:44 },
+      { name:"W24x55", Ix:1350, Sx:114, weight:55 }
+    ];
+
+    const LUMBER_SECTIONS = [
+      { name:"2x8", Ix:47.63, Sx:13.14 },
+      { name:"2x10", Ix:98.93, Sx:21.39 },
+      { name:"2x12", Ix:177.98, Sx:31.64 }
+    ];
+
+    function clamp(value, minimum, maximum) {
+      return Math.min(Math.max(value, minimum), maximum);
+    }
+
+    function positivePart(value) {
+      return Math.max(0, value);
+    }
+
+    function calculateReactions(model) {
+      const span = model.span;
+      let totalLoad = 0;
+      let totalMoment = 0;
+
+      for (const load of model.pointLoads) {
+        if (load.position >= 0 && load.position <= span && load.magnitude >= 0) {
+          totalLoad += load.magnitude;
+          totalMoment += load.magnitude * load.position;
+        }
+      }
+
+      for (const load of model.uniformLoads) {
+        const start = clamp(load.start, 0, span);
+        const end = clamp(load.end, 0, span);
+        const a = Math.min(start, end);
+        const b = Math.max(start, end);
+        const length = b - a;
+        if (length > 0 && load.magnitude >= 0) {
+          const force = load.magnitude * length;
+          totalLoad += force;
+          totalMoment += force * (a + b) / 2;
+        }
+      }
+
+      if (model.support === "cantilever") {
+        return {
+          left: totalLoad,
+          right: 0,
+          fixedMoment: totalMoment
+        };
+      }
+
+      const left = (totalLoad * span - totalMoment) / span;
+      return {
+        left,
+        right: totalLoad - left,
+        fixedMoment: 0
+      };
+    }
+
+    function calculateShear(model, x) {
+      if (model.support === "cantilever") {
+        let rightLoads = 0;
+        for (const load of model.pointLoads) {
+          if (load.position > x && load.position <= model.span) {
+            rightLoads += load.magnitude;
+          }
+        }
+        for (const load of model.uniformLoads) {
+          const a = clamp(Math.min(load.start, load.end), 0, model.span);
+          const b = clamp(Math.max(load.start, load.end), 0, model.span);
+          if (b > x) {
+            rightLoads += load.magnitude * (b - Math.max(a, x));
+          }
+        }
+        return rightLoads;
+      }
+
+      let shear = model.reactions.left;
+      for (const load of model.pointLoads) {
+        if (load.position <= x && load.position >= 0 && load.position <= model.span) {
+          shear -= load.magnitude;
+        }
+      }
+      for (const load of model.uniformLoads) {
+        const a = clamp(Math.min(load.start, load.end), 0, model.span);
+        const b = clamp(Math.max(load.start, load.end), 0, model.span);
+        if (b > a) {
+          const coveredLength = Math.max(0, Math.min(x, b) - a);
+          shear -= load.magnitude * coveredLength;
+        }
+      }
+      return shear;
+    }
+
+    function calculateMoment(model, x) {
+      if (model.support === "cantilever") {
+        let moment = 0;
+        for (const load of model.pointLoads) {
+          if (load.position > x && load.position <= model.span) {
+            moment += load.magnitude * (load.position - x);
+          }
+        }
+        for (const load of model.uniformLoads) {
+          const a = clamp(Math.min(load.start, load.end), 0, model.span);
+          const b = clamp(Math.max(load.start, load.end), 0, model.span);
+          if (b > x) {
+            const left = Math.max(a, x);
+            const right = b;
+            moment += load.magnitude * (right - left) * ((right + left) / 2 - x);
+          }
+        }
+        return moment;
+      }
+
+      let moment = model.reactions.left * x;
+      for (const load of model.pointLoads) {
+        if (load.position <= x && load.position >= 0 && load.position <= model.span) {
+          moment -= load.magnitude * (x - load.position);
+        }
+      }
+      for (const load of model.uniformLoads) {
+        const a = clamp(Math.min(load.start, load.end), 0, model.span);
+        const b = clamp(Math.max(load.start, load.end), 0, model.span);
+        if (x > a) {
+          const start = a;
+          const end = Math.min(x, b);
+          if (end > start) {
+            moment -= load.magnitude * (end - start) * ((start + end) / 2 - 0);
+          }
+          if (x > b && b > a) {
+            moment += 0;
+          }
+        }
+      }
+      for (const load of model.uniformLoads) {
+        const a = clamp(Math.min(load.start, load.end), 0, model.span);
+        const b = clamp(Math.max(load.start, load.end), 0, model.span);
+        if (b > a && x > a) {
+          const end = Math.min(x, b);
+          moment = moment - 0;
+        }
+      }
+      return moment;
+    }
+
+    function calculateMomentSimple(model, x) {
+      let moment = model.reactions.left * x;
+      for (const load of model.pointLoads) {
+        if (load.position <= x && load.position >= 0 && load.position <= model.span) {
+          moment -= load.magnitude * (x - load.position);
+        }
+      }
+      for (const load of model.uniformLoads) {
+        const a = clamp(Math.min(load.start, load.end), 0, model.span);
+        const b = clamp(Math.max(load.start, load.end), 0, model.span);
+        if (x > a) {
+          const end = Math.min(x, b);
+          const length = end - a;
+          if (length > 0) {
+            moment -= load.magnitude * length * ((a + end) / 2);
+          }
+        }
+      }
+      return moment;
+    }
+
+    function calculateMomentAt(model, x) {
+      return model.support === "cantilever"
+        ? calculateMoment(model, x)
+        : calculateMomentSimple(model, x);
+    }
+
+    function calculateDeflection(model, section, stepFeet = 0.05) {
+      const lengthIn = model.span * 12;
+      const stepIn = stepFeet * 12;
+      const EI = (model.material === "steel" ? 29000 : 1600) * section.Ix;
+      const points = [];
+
+      let position = 0;
+      while (position <= lengthIn + 0.0001) {
+        points.push(position);
+        position += stepIn;
+      }
+      if (Math.abs(points[points.length - 1] - lengthIn) > 0.0001) {
+        points.push(lengthIn);
+      }
+
+      let endMomentIntegral = 0;
+      for (let i = 0; i < points.length - 1; i++) {
+        const x1 = points[i];
+        const x2 = points[i + 1];
+        const m1 = calculateMomentAt(model, x1 / 12) * 12;
+        const m2 = calculateMomentAt(model, x2 / 12) * 12;
+        endMomentIntegral += (m1 * (lengthIn - x1) + m2 * (lengthIn - x2)) / 2 *
+          (x2 - x1) / EI;
+      }
+
+      const values = [];
+      for (let i = 0; i < points.length; i++) {
+        const x = points[i];
+        if (i === 0) {
+          values.push({ x:0, y:0 });
+          continue;
+        }
+
+        let momentIntegral = 0;
+        for (let j = 0; j < i; j++) {
+          const x1 = points[j];
+          const x2 = points[j + 1];
+          const m1 = calculateMomentAt(model, x1 / 12) * 12;
+          const m2 = calculateMomentAt(model, x2 / 12) * 12;
+          momentIntegral += (
+            m1 * (x - x1) +
+            m2 * (x - x2)
+          ) / 2 * (x2 - x1) / EI;
+        }
+
+        let y = momentIntegral;
+        if (model.support === "simple") {
+          y -= (x / lengthIn) * endMomentIntegral;
+        }
+        values.push({ x:x / 12, y });
+      }
+
+      return values;
+    }
+
+    function calculateBeam(model, section) {
+      model.reactions = calculateReactions(model);
+
+      const step = 0.05;
+      const length = model.span;
+      const xValues = [];
+      for (let x = 0; x <= length + 0.0001; x += step) {
+        xValues.push(x);
+      }
+      if (Math.abs(xValues[xValues.length - 1] - length) > 0.0001) {
+        xValues.push(length);
+      }
+
+      const specialX = [];
+      for (const load of model.pointLoads) {
+        if (load.position >= 0 && load.position <= length) specialX.push(load.position);
+      }
+      for (const load of model.uniformLoads) {
+        const a = clamp(Math.min(load.start, load.end), 0, length);
+        const b = clamp(Math.max(load.start, load.end), 0, length);
+        specialX.push(a, b);
+      }
+      for (const x of specialX) {
+        if (!xValues.some(value => Math.abs(value - x) < 0.00001)) xValues.push(x);
+      }
+      xValues.sort((a,b) => a-b);
+
+      let maxShear = { value:0, x:0 };
+      let maxMoment = { value:0, x:0 };
+      const curve = [];
+
+      for (const x of xValues) {
+        const shear = calculateShear(model, x);
+        const moment = calculateMomentAt(model, x);
+        curve.push({ x, shear, moment });
+        if (Math.abs(shear) > Math.abs(maxShear.value) + 1e-9) {
+          maxShear = { value:shear, x };
+        }
+        if (Math.abs(moment) > Math.abs(maxMoment.value) + 1e-9) {
+          maxMoment = { value:moment, x };
+        }
+      }
+
+      const deflectionValues = calculateDeflection(model, section);
+      let maxDeflection = { value:0, x:0 };
+      for (const point of deflectionValues) {
+        if (Math.abs(point.y) > Math.abs(maxDeflection.value)) {
+          maxDeflection = { value:point.y, x:point.x };
+        }
+      }
+
+      const bendingStress = Math.abs(maxMoment.value) * 12 / section.Sx;
+      const allowableStress = model.material === "steel" ? 30 : 0.900;
+      const deflectionLimit = model.span * 12 / model.limit;
+
+      return {
+        reactions:model.reactions,
+        curve,
+        deflection:deflectionValues,
+        maxShear,
+        maxMoment,
+        maxDeflection,
+        bendingStress,
+        allowableStress,
+        deflectionLimit,
+        bendingPass:bendingStress <= allowableStress,
+        deflectionPass:Math.abs(maxDeflection.value) <= deflectionLimit
+      };
+    }
+
+    function findLightestPassingSection(model) {
+      const sections = model.material === "steel" ? STEEL_SECTIONS : LUMBER_SECTIONS;
+      const passing = [];
+
+      for (const section of sections) {
+        const result = calculateBeam(model, section);
+        if (result.bendingPass && result.deflectionPass) {
+          passing.push({ section, result });
+        }
+      }
+
+      if (model.material === "lumber") return passing[0] || null;
+      return passing.sort((a,b) =>
+        a.section.weight - b.section.weight ||
+        b.section.Ix - a.section.Ix
+      )[0] || null;
+    }
+
+    function validateExpected(label, actual, expected, tolerance = 0.01) {
+      const passed = Math.abs(actual - expected) <= tolerance;
+      return { label, actual, expected, tolerance, passed };
+    }
+
+    function validateFourCases() {
+      const checks = [];
+      const w12 = STEEL_SECTIONS.find(section => section.name === "W12x26");
+      const lumber210 = LUMBER_SECTIONS.find(section => section.name === "2x10");
+
+      const uniform20 = {
+        support:"simple", span:20, material:"steel", limit:360,
+        pointLoads:[], uniformLoads:[{magnitude:1, start:0, end:20}]
+      };
+      const uniform20Result = calculateBeam(uniform20, w12);
+      checks.push(validateExpected("Uniform 20 ft: left reaction (kip)", uniform20Result.reactions.left, 10));
+      checks.push(validateExpected("Uniform 20 ft: right reaction (kip)", uniform20Result.reactions.right, 10));
+      checks.push(validateExpected("Uniform 20 ft: maximum moment (kip-ft)", uniform20Result.maxMoment.value, 50));
+      checks.push(validateExpected("Uniform 20 ft: bending stress (ksi)", uniform20Result.bendingStress, 17.96, 0.02));
+      checks.push(validateExpected("Uniform 20 ft: maximum deflection (in)", Math.abs(uniform20Result.maxDeflection.value), 0.609, 0.003));
+      checks.push(validateExpected("Uniform 20 ft: deflection limit (in)", uniform20Result.deflectionLimit, 0.667, 0.003));
+      checks.push({ label:"Uniform 20 ft: bending check", passed:uniform20Result.bendingPass,
+        actual:uniform20Result.bendingPass ? "PASS" : "FAIL", expected:"PASS", tolerance:0 });
+      checks.push({ label:"Uniform 20 ft: deflection check", passed:uniform20Result.deflectionPass,
+        actual:uniform20Result.deflectionPass ? "PASS" : "FAIL", expected:"PASS", tolerance:0 });
+
+      const point20 = {
+        support:"simple", span:20, material:"steel", limit:360,
+        pointLoads:[{magnitude:10, position:5}], uniformLoads:[]
+      };
+      const point20Result = calculateBeam(point20, w12);
+      checks.push(validateExpected("Point 20 ft: left reaction (kip)", point20Result.reactions.left, 7.5));
+      checks.push(validateExpected("Point 20 ft: right reaction (kip)", point20Result.reactions.right, 2.5));
+      checks.push(validateExpected("Point 20 ft: maximum moment (kip-ft)", point20Result.maxMoment.value, 37.5));
+      checks.push(validateExpected("Point 20 ft: bending stress (ksi)", point20Result.bendingStress, 13.47, 0.02));
+      checks.push(validateExpected("Point 20 ft: maximum deflection (in)", Math.abs(point20Result.maxDeflection.value), 0.340, 0.003));
+      checks.push(validateExpected("Point 20 ft: deflection location (ft)", point20Result.maxDeflection.x, 8.82, 0.05));
+
+      const cantilever10 = {
+        support:"cantilever", span:10, material:"steel", limit:360,
+        pointLoads:[{magnitude:5, position:10}], uniformLoads:[]
+      };
+      const cantilever10Result = calculateBeam(cantilever10, w12);
+      checks.push(validateExpected("Cantilever 10 ft: reaction (kip)", cantilever10Result.reactions.left, 5));
+      checks.push(validateExpected("Cantilever 10 ft: fixed-end moment (kip-ft)", cantilever10Result.reactions.fixedMoment, 50));
+      checks.push(validateExpected("Cantilever 10 ft: maximum deflection (in)", Math.abs(cantilever10Result.maxDeflection.value), 0.487, 0.003));
+      checks.push(validateExpected("Cantilever 10 ft: deflection limit (in)", cantilever10Result.deflectionLimit, 0.333, 0.003));
+      checks.push({ label:"Cantilever 10 ft: deflection check", passed:!cantilever10Result.deflectionPass,
+        actual:cantilever10Result.deflectionPass ? "PASS" : "FAIL", expected:"FAIL", tolerance:0 });
+
+      const lumber12 = {
+        support:"simple", span:12, material:"lumber", limit:360,
+        pointLoads:[], uniformLoads:[{magnitude:0.05, start:0, end:12}]
+      };
+      const lumber12Result = calculateBeam(lumber12, lumber210);
+      checks.push(validateExpected("Lumber 12 ft: maximum moment (kip-ft)", lumber12Result.maxMoment.value, 0.90, 0.01));
+      checks.push(validateExpected("Lumber 12 ft: bending stress (ksi)", lumber12Result.bendingStress, 0.505, 0.003));
+      checks.push(validateExpected("Lumber 12 ft: maximum deflection (in)", Math.abs(lumber12Result.maxDeflection.value), 0.147, 0.003));
+      checks.push({ label:"Lumber 12 ft: bending check", passed:lumber12Result.bendingPass,
+        actual:lumber12Result.bendingPass ? "PASS" : "FAIL", expected:"PASS", tolerance:0 });
+      checks.push({ label:"Lumber 12 ft: deflection check", passed:lumber12Result.deflectionPass,
+        actual:lumber12Result.deflectionPass ? "PASS" : "FAIL", expected:"PASS", tolerance:0 });
+
+      const failed = checks.filter(check => !check.passed);
+      const report = {
+        passed:failed.length === 0,
+        total:checks.length,
+        failures:failed.length,
+        checks
+      };
+      if (window.console) {
+        (failed.length ? console.warn : console.log)(
+          `Beam validation: ${checks.length - failed.length}/${checks.length} checks passed`,
+          report
+        );
+      }
+      return report;
+    }
+
+    function collectBeamModel() {
+      const support = document.querySelector('input[name="support"]:checked').value;
+      const span = clamp(Number(document.getElementById("span-number").value) || 20, 4, 40);
+      const material = document.querySelector('input[name="material"]:checked').value;
+      const limit = Number(document.querySelector('input[name="limit"]:checked').value);
+      const pointLoads = [];
+
+      document.querySelectorAll("#point-loads .load-card").forEach(card => {
+        const inputs = card.querySelectorAll("input");
+        const magnitudeInput = card.querySelector('input[type="number"]:not([aria-label])');
+        const positionInput = card.querySelector('input[aria-label]');
+        pointLoads.push({
+          magnitude: clamp(Number(magnitudeInput && magnitudeInput.value) || 0, 0, 10000),
+          position: clamp(Number(positionInput && positionInput.value) || 10, 0, 50)
+        });
+      });
+
+      const uniformLoads = [];
+      document.querySelectorAll("#uniform-loads .load-card").forEach(card => {
+        const numberInputs = card.querySelectorAll('input[type="number"]');
+        uniformLoads.push({
+          magnitude:clamp(Number(numberInputs[0]?.value) || 0, 0, 10000),
+          start:clamp(Number(numberInputs[1]?.value) || 0, 0, 50),
+          end:clamp(Number(numberInputs[2]?.value) || span, 0, 50)
+        });
+      });
+
+      return { support, span, material, limit, pointLoads, uniformLoads };
+    }
+
+    function getSelectedSection(model) {
+      const selectedName = document.querySelector('input[name="section"]:checked')?.value;
+      const sections = model.material === "steel" ? STEEL_SECTIONS : LUMBER_SECTIONS;
+      return sections.find(section => section.name === selectedName) || sections[0];
+    }
+
+    function drawingFunctionsEnabled() {
+      return typeof document !== "undefined";
+    }
+
+    function mapBeamX(x, span) {
+      return 125 + (650 * clamp(x, 0, span) / span);
+    }
+
+    function drawBeam(model, result) {
+      if (!drawingFunctionsEnabled()) return;
+      const svg = document.getElementById("beam-drawing");
+      const left = 125;
+      const right = left + 650;
+      const beamY = 84;
+      let markup = "";
+
+      markup += `<line x1="${left}" y1="${beamY}" x2="${right}" y2="${beamY}" stroke="#344054" stroke-width="7" stroke-linecap="round"/>`;
+
+      if (model.support === "cantilever") {
+        markup += `
+          <rect x="${left - 18}" y="54" width="18" height="60" rx="2" fill="#344054"/>
+          <g stroke="#98a2b3" stroke-width="2">
+            <line x1="${left - 26}" y1="58" x2="${left - 10}" y2="74"/>
+            <line x1="${left - 26}" y1="74" x2="${left - 10}" y2="90"/>
+            <line x1="${left - 26}" y1="90" x2="${left - 10}" y2="106"/>
+          </g>`;
+      } else {
+        markup += `
+          <polygon points="${left},${beamY} ${left - 22},116 ${left + 22},116" fill="#cfd6e2"/>
+          <rect x="${left - 29}" y="116" width="58" height="5" rx="2" fill="#344054"/>
+          <polygon points="${right},${beamY} ${right - 22},116 ${right + 22},116" fill="#cfd6e2"/>
+          <rect x="${right - 29}" y="116" width="58" height="5" rx="2" fill="#344054"/>`;
+      }
+
+      for (const load of model.pointLoads) {
+        if (load.magnitude <= 0 || load.position < 0 || load.position > model.span) continue;
+        const x = mapBeamX(load.position, model.span);
+        markup += `
+          <line x1="${x}" y1="30" x2="${x}" y2="72" stroke="#2563eb" stroke-width="3"/>
+          <path d="M${x - 5} 72 L${x} ${beamY} L${x + 5} 72 Z" fill="#2563eb"/>
+          <text x="${x}" y="20" text-anchor="middle" fill="#344054" font-size="11" font-weight="700">${load.magnitude.toFixed(load.magnitude % 1 ? 2 : 1)} k</text>`;
+      }
+
+      for (const load of model.uniformLoads) {
+        if (load.magnitude <= 0) continue;
+        const a = clamp(Math.min(load.start, load.end), 0, model.span);
+        const b = clamp(Math.max(load.start, load.end), 0, model.span);
+        if (b <= a) continue;
+        const leftX = mapBeamX(a, model.span);
+        const rightX = mapBeamX(b, model.span);
+        const spacing = clamp((rightX - leftX) / 12, 18, 31);
+        for (let x = leftX + spacing / 2; x < rightX; x += spacing) {
+          markup += `<line x1="${x}" y1="34" x2="${x}" y2="72" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-down)"/>`;
+        }
+        markup += `<text x="${(leftX + rightX) / 2}" y="24" text-anchor="middle" fill="#344054" font-size="11" font-weight="700">${load.magnitude.toFixed(load.magnitude % 1 ? 2 : 1)} k/ft</text>`;
+      }
+
+      markup += `
+        <line x1="${left}" y1="128" x2="${right}" y2="128" stroke="#98a2b3"/>
+        <line x1="${left}" y1="124" x2="${left}" y2="132" stroke="#98a2b3"/>
+        <line x1="${mapBeamX(model.span / 2, model.span)}" y1="124" x2="${mapBeamX(model.span / 2, model.span)}" y2="132" stroke="#98a2b3"/>
+        <line x1="${right}" y1="124" x2="${right}" y2="132" stroke="#98a2b3"/>
+        <text x="${left}" y="145" text-anchor="middle" fill="#667085" font-size="11">0 ft</text>
+        <text x="${mapBeamX(model.span / 2, model.span)}" y="145" text-anchor="middle" fill="#667085" font-size="11">${(model.span / 2).toFixed(model.span % 2 ? 1 : 0)} ft</text>
+        <text x="${right}" y="145" text-anchor="middle" fill="#667085" font-size="11">${model.span} ft</text>`;
+
+      if (model.support === "cantilever") {
+        markup += `
+          <text x="${left + 12}" y="25" text-anchor="start" fill="#344054" font-size="12" font-weight="700">R = ${result.reactions.left.toFixed(1)} k</text>
+          <text x="${left + 12}" y="154" text-anchor="start" fill="#344054" font-size="11" font-weight="700">Mᶠ = ${result.reactions.fixedMoment.toFixed(1)} kip-ft</text>`;
+      } else {
+        markup += `
+          <text x="${left}" y="25" text-anchor="middle" fill="#344054" font-size="12" font-weight="700">Rₗ = ${result.reactions.left.toFixed(1)} k</text>
+          <text x="${right}" y="25" text-anchor="middle" fill="#344054" font-size="12" font-weight="700">Rᵣ = ${result.reactions.right.toFixed(1)} k</text>`;
+      }
+
+      svg.innerHTML = `
+        <defs><marker id="arrow-down" markerWidth="8" markerHeight="8" refX="4" refY="7" orient="auto"><path d="M1 1 L4 7 L7 1 Z" fill="#2563eb"/></marker></defs>
+        ${markup}`;
+    }
+
+    function drawAreaDiagram(svgId, points, field, model, result, units, title) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+      const left = 60;
+      const right = 840;
+      const top = 12;
+      const bottom = 120;
+      const baseline = 66;
+      let maximum = 0;
+      let maximumPoint = null;
+
+      for (const point of points) {
+        const value = field === "deflection" ? point.y : point[field];
+        if (Math.abs(value) > Math.abs(maximum)) {
+          maximum = value;
+          maximumPoint = point;
+        }
+      }
+
+      const scale = field === "deflection"
+        ? Math.max(Math.abs(maximum), 0.001) * 1.25
+        : Math.max(Math.abs(maximum), 1) * 1.25;
+      const baselineValue = field === "deflection" ? 0 : 0;
+      const mapX = point => left + (point.x / model.span) * (right - left);
+      const mapY = point => {
+        const value = field === "deflection" ? point.y : point[field];
+        if (field === "deflection") return baseline - (value / scale) * 48;
+        return baseline - (value / scale) * 48;
+      };
+
+      let path = `M${left} ${baseline}`;
+      for (const point of points) {
+        path += ` L${mapX(point).toFixed(2)} ${mapY(point).toFixed(2)}`;
+      }
+      path += ` L${right} ${baseline} Z`;
+
+      const maxX = maximumPoint ? maximumPoint.x : model.span / 2;
+      const maxY = maximumPoint ? mapY(maximumPoint) : baseline;
+      const labelValue = field === "deflection"
+        ? `${maximum >= 0 ? "" : "−"}${Math.abs(maximum).toFixed(3)}`
+        : `${maximum >= 0 ? "+" : "−"}${Math.abs(maximum).toFixed(field === "moment" ? 1 : 1)}`;
+
+      svg.innerHTML = `
+        <rect x="${left}" y="${top}" width="${right-left}" height="${bottom-top}" fill="#fafbfe"/>
+        <line x1="${left}" y1="${baseline}" x2="${right}" y2="${baseline}" stroke="#aeb7c5"/>
+        <line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" stroke="#dfe4ec"/>
+        <line x1="${left + (right-left)/2}" y1="${top}" x2="${left + (right-left)/2}" y2="${bottom}" stroke="#edf0f5" stroke-dasharray="3 5"/>
+        <line x1="${right}" y1="${top}" x2="${right}" y2="${bottom}" stroke="#dfe4ec"/>
+        <path d="${path}" fill="#84a9f4" fill-opacity=".55" stroke="#2563eb" stroke-width="2"/>
+        <circle cx="${mapX(maximumPoint || {x:maxX})}" cy="${maxY}" r="3.5" fill="#2563eb"/>
+        <text x="${mapX(maximumPoint || {x:maxX})}" y="${Math.max(10, maxY - 8)}" text-anchor="middle" fill="#344054" font-size="11" font-weight="750">${labelValue} ${units} at ${maxX.toFixed(maxX % 1 ? 2 : 0)} ft</text>
+        <text x="${left}" y="128" text-anchor="middle" fill="#667085" font-size="10">0</text>
+        <text x="${left + (right-left)/2}" y="128" text-anchor="middle" fill="#667085" font-size="10">${(model.span/2).toFixed(model.span%2 ? 1 : 0)} ft</text>
+        <text x="${right}" y="128" text-anchor="middle" fill="#667085" font-size="10">${model.span} ft</text>
+        <line class="crosshair" x1="${left + (right-left)/2}" y1="${top}" x2="${left + (right-left)/2}" y2="${bottom}" stroke="#94a3b8" stroke-dasharray="4 4"/>
+        <text class="hover-value" x="${right-4}" y="8" text-anchor="end" fill="#667085" font-size="10"></text>`;
+    }
+
+    function drawCalculatedGraphics(model, result) {
+      drawBeam(model, result);
+      drawAreaDiagram("shear-diagram", result.curve, "shear", model, result, "kips", "Shear");
+      drawAreaDiagram("moment-diagram", result.curve, "moment", model, result, "kip-ft", "Moment");
+      drawAreaDiagram("deflection-diagram", result.deflection.map(point => ({x:point.x, y:point.y})), "deflection", model, result, "in", "Deflection");
+    }
+
+    function updateCalculationDisplay() {
+      syncPointPositionBounds();
+      const model = collectBeamModel();
+      const section = getSelectedSection(model);
+      if (!section) return;
+      const result = calculateBeam(model, section);
+      drawCalculatedGraphics(model, result);
+      const modelLabel = document.querySelector(".model-label");
+      modelLabel.textContent =
+        `${model.span} ft span · ${model.support === "simple" ? "Simply supported" : "Cantilever"} · ${section.name}`;
+
+      const reactionTexts = document.querySelectorAll(".beam-svg text");
+      if (model.support === "cantilever") {
+        reactionTexts[3] && (reactionTexts[3].textContent = `R = ${result.reactions.left.toFixed(1)} k`);
+        reactionTexts[4] && (reactionTexts[4].textContent = `Mᶠ = ${result.reactions.fixedMoment.toFixed(1)} kip-ft`);
+      } else {
+        reactionTexts[3] && (reactionTexts[3].textContent = `Rₗ = ${result.reactions.left.toFixed(1)} k`);
+        reactionTexts[4] && (reactionTexts[4].textContent = `Rᵣ = ${result.reactions.right.toFixed(1)} k`);
+      }
+
+      const checkCards = document.querySelectorAll(".check-card");
+      const bendingCard = checkCards[0];
+      bendingCard.querySelector(".check-values > div:first-child strong").textContent =
+        `${result.bendingStress.toFixed(2)} ksi`;
+      bendingCard.querySelector(".allowable strong").textContent =
+        `${result.allowableStress.toFixed(3)} ksi`;
+      const bendingStatus = bendingCard.querySelector(".pass");
+      bendingStatus.textContent = result.bendingPass ? "PASS" : "FAIL";
+      bendingStatus.style.background = result.bendingPass ? "#daf4e8" : "#ffe1e1";
+      bendingStatus.style.color = result.bendingPass ? "#08784b" : "#b42323";
+      const bendingRatio = result.bendingStress / result.allowableStress;
+      const bendingFill = bendingCard.querySelector(".ratio-fill");
+      bendingFill.style.width = `${Math.min(bendingRatio * 100, 100)}%`;
+      bendingFill.style.background = bendingRatio > 1 ? "var(--red)" : bendingRatio >= 0.70 ? "var(--amber)" : "var(--green)";
+      bendingCard.querySelector(".ratio-label").textContent =
+        `${(bendingRatio * 100).toFixed(1)}% of allowable`;
+
+      const deflectionCard = checkCards[1];
+      deflectionCard.querySelector(".check-values > div:first-child strong").textContent =
+        `${Math.abs(result.maxDeflection.value).toFixed(3)} in`;
+      deflectionCard.querySelector(".allowable strong").textContent =
+        `${result.deflectionLimit.toFixed(3)} in`;
+      deflectionCard.querySelector(".allowable").firstChild.textContent =
+        `Allowable (L/${model.limit})`;
+      const deflectionStatus = deflectionCard.querySelector(".pass");
+      deflectionStatus.textContent = result.deflectionPass ? "PASS" : "FAIL";
+      deflectionStatus.style.background = result.deflectionPass ? "#daf4e8" : "#ffe1e1";
+      deflectionStatus.style.color = result.deflectionPass ? "#08784b" : "#b42323";
+      const deflectionRatio = Math.abs(result.maxDeflection.value) / result.deflectionLimit;
+      const deflectionFill = deflectionCard.querySelector(".ratio-fill");
+      deflectionFill.style.width = `${Math.min(deflectionRatio * 100, 100)}%`;
+      deflectionFill.style.background = deflectionRatio > 1 ? "var(--red)" : deflectionRatio >= 0.70 ? "var(--amber)" : "var(--green)";
+      deflectionCard.querySelector(".ratio-label").textContent =
+        `${(deflectionRatio * 100).toFixed(1)}% of allowable`;
+
+      const lightest = findLightestPassingSection(model);
+      const suggestion = document.querySelector(".suggestion-copy");
+      const useButton = document.querySelector(".use-button");
+      if (lightest) {
+        suggestion.innerHTML =
+          `Lightest passing section<br><strong>${lightest.section.name} — both checks pass</strong>`;
+        useButton.textContent = `Use ${lightest.section.name}`;
+      } else {
+        suggestion.innerHTML =
+          "Lightest passing section<br><strong>No section passes both checks</strong>";
+        useButton.textContent = "No passing section";
+      }
+    }
+
+    window.BeamCalculations = {
+      STEEL_SECTIONS,
+      LUMBER_SECTIONS,
+      calculateReactions,
+      calculateShear,
+      calculateMomentSimple,
+      calculateMomentAt,
+      calculateDeflection,
+      calculateBeam,
+      findLightestPassingSection
+    };
+
+    window.BeamValidation = {
+      validateFourCases
+    };
+
+    function syncPair(rangeId, numberId) {
+      const range = document.getElementById(rangeId);
+      const number = document.getElementById(numberId);
+      range.addEventListener("input", () => { number.value = range.value; });
+      number.addEventListener("input", () => { range.value = number.value; });
+    }
+    syncPair("span-range","span-number");
+    syncPair("point-position-range","point-position-number");
+    syncPair("uniform-start-range","uniform-start-number");
+    syncPair("uniform-end-range","uniform-end-number");
+
+    function syncPointPositionBounds() {
+      const span = clamp(Number(document.getElementById("span-number").value) || 20, 4, 40);
+      document.querySelectorAll("#point-loads .load-card").forEach(card => {
+        const range = card.querySelector('input[type="range"]');
+        const numberInput = card.querySelector('input[type="number"][aria-label]');
+        if (!range || !numberInput) return;
+        range.max = String(span);
+        numberInput.max = String(span);
+        if (Number(range.value) > span) range.value = String(span);
+        if (Number(numberInput.value) > span) numberInput.value = String(span);
+      });
+    }
+
+    document.querySelectorAll('input[name="material"]').forEach((radio) => {
+      radio.addEventListener("change", () => {
+        const lumber = radio.value === "lumber";
+        document.getElementById("steel-sections").hidden = lumber;
+        document.getElementById("lumber-sections").hidden = !lumber;
+        document.getElementById("section-legend").textContent =
+          lumber ? "Douglas Fir-Larch No. 2" : "Steel W-shapes";
+        const visibleSections = document.querySelectorAll(
+          lumber ? "#lumber-sections input[name='section']" : "#steel-sections input[name='section']"
+        );
+        visibleSections[0].checked = true;
+        updateCalculationDisplay();
+      });
+    });
+
+    document.querySelectorAll(".load-card .icon-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        button.closest(".load-card").remove();
+        updateCalculationDisplay();
+      });
+    });
+
+    document.getElementById("add-point").addEventListener("click", () => {
+      const container = document.getElementById("point-loads");
+      const number = container.querySelectorAll(".load-card").length + 1;
+      const model = collectBeamModel();
+      const defaultPosition = model.support === "cantilever" ? model.span : model.span / 2;
+      const card = document.createElement("div");
+      card.className = "load-card";
+      card.innerHTML = `
+        <div class="load-card-head"><span class="load-name">Point load ${number}</span>
+          <button class="icon-button" type="button" aria-label="Remove point load">×</button></div>
+        <div class="control"><label class="control-label">Magnitude (kip)</label>
+          <input type="number" min="0" max="10000" value="0" step="0.1"></div>
+        <div class="control"><label class="control-label">Position (ft)</label>
+          <div class="sync-row"><input type="range" min="0" max="${model.span}" value="${Math.min(defaultPosition, model.span)}" step="1">
+          <input type="number" min="0" max="${model.span}" value="${Math.min(defaultPosition, model.span)}" step="1" aria-label="Point load position in feet"></div></div>`;
+      card.querySelector(".icon-button").addEventListener("click", () => {
+        card.remove();
+        updateCalculationDisplay();
+      });
+      const range = card.querySelector('input[type="range"]');
+      const numberInput = card.querySelector('input[type="number"][aria-label]');
+      range.addEventListener("input", () => { numberInput.value = range.value; });
+      numberInput.addEventListener("input", () => { range.value = numberInput.value; });
+      container.appendChild(card);
+      updateCalculationDisplay();
+    });
+
+    document.getElementById("add-uniform").addEventListener("click", () => {
+      const container = document.getElementById("uniform-loads");
+      const number = container.querySelectorAll(".load-card").length + 1;
+      const model = collectBeamModel();
+      const card = document.createElement("div");
+      card.className = "load-card";
+      card.innerHTML = `
+        <div class="load-card-head"><span class="load-name">Uniform load ${number}</span>
+          <button class="icon-button" type="button" aria-label="Remove uniform load">×</button></div>
+        <div class="control"><label class="control-label">Magnitude (kip/ft)</label>
+          <input type="number" min="0" max="10000" value="0" step="0.01"></div>
+        <div class="control"><label class="control-label">Start (ft)</label>
+          <div class="sync-row"><input type="range" min="0" max="50" value="0" step="1">
+          <input type="number" min="0" max="50" value="0" step="1"></div></div>
+        <div class="control"><label class="control-label">End (ft)</label>
+          <div class="sync-row"><input type="range" min="0" max="50" value="${model.span}" step="1">
+          <input type="number" min="0" max="50" value="${model.span}" step="1"></div></div>`;
+      card.querySelector(".icon-button").addEventListener("click", () => {
+        card.remove();
+        updateCalculationDisplay();
+      });
+      card.querySelectorAll(".sync-row").forEach((row) => {
+        const range = row.querySelector('input[type="range"]');
+        const numberInput = row.querySelector('input[type="number"]');
+        range.addEventListener("input", () => { numberInput.value = range.value; });
+        numberInput.addEventListener("input", () => { range.value = numberInput.value; });
+      });
+      container.appendChild(card);
+      updateCalculationDisplay();
+    });
+
+    document.querySelectorAll(".diagram svg").forEach((svg) => {
+      svg.addEventListener("mousemove", (event) => {
+        const rect = svg.getBoundingClientRect();
+        const viewX = ((event.clientX - rect.left) / rect.width) * 900;
+        const plotX = Math.max(60, Math.min(840, viewX));
+        document.querySelectorAll(".crosshair").forEach((line) => {
+          line.setAttribute("x1", plotX);
+          line.setAttribute("x2", plotX);
+        });
+
+        const model = collectBeamModel();
+        const section = getSelectedSection(model);
+        if (!section) return;
+        const result = calculateBeam(model, section);
+        const x = ((plotX - 60) / 780) * model.span;
+
+        const nearestCurve = result.curve.reduce((best, point) =>
+          Math.abs(point.x - x) < Math.abs(best.x - x) ? point : best
+        , result.curve[0]);
+        const nearestDeflection = result.deflection.reduce((best, point) =>
+          Math.abs(point.x - x) < Math.abs(best.x - x) ? point : best
+        , result.deflection[0]);
+
+        const shearLabel = document.querySelector("#shear-diagram .hover-value");
+        const momentLabel = document.querySelector("#moment-diagram .hover-value");
+        const deflectionLabel = document.querySelector("#deflection-diagram .hover-value");
+        if (shearLabel) shearLabel.textContent =
+          `x ${nearestCurve.x.toFixed(1)} ft · V ${nearestCurve.shear.toFixed(2)} k`;
+        if (momentLabel) momentLabel.textContent =
+          `M ${nearestCurve.moment.toFixed(2)} kip-ft`;
+        if (deflectionLabel) deflectionLabel.textContent =
+          `y ${nearestDeflection.y.toFixed(3)} in`;
+      });
+    });
+
+    document.querySelector(".sidebar").addEventListener("input", updateCalculationDisplay);
+    document.querySelector(".sidebar").addEventListener("change", updateCalculationDisplay);
+    document.querySelector(".use-button").addEventListener("click", () => {
+      const match = document.querySelector(".suggestion-copy strong")?.textContent.match(/^(\S+)/);
+      if (!match || match[1] === "No") return;
+      const name = match[1];
+      const section = [...document.querySelectorAll('input[name="section"]')]
+        .find(radio => radio.value === name);
+      if (section) {
+        const lumber = /^2x/.test(name);
+        document.querySelector(`input[name="material"][value="${lumber ? "lumber" : "steel"}"]`).checked = true;
+        document.getElementById("steel-sections").hidden = lumber;
+        document.getElementById("lumber-sections").hidden = !lumber;
+        document.getElementById("section-legend").textContent =
+          lumber ? "Douglas Fir-Larch No. 2" : "Steel W-shapes";
+        section.checked = true;
+        updateCalculationDisplay();
+      }
+    });
+    validateFourCases();
+    updateCalculationDisplay();
+  </script>
+</body>
 </html>
