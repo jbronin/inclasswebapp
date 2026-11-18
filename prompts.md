@@ -29,3 +29,25 @@ Summary: Added stage 4 benchmark validation for the four cases in `spec.md`, exp
 Fix the point-load position control so its maximum matches the current beam span.
 
 Summary: Updated point-load position sliders and number inputs to use the current beam span as their maximum. Existing point positions are clamped when the span decreases, and newly added point loads default to the span midpoint or cantilever free end within the span.
+
+## 2026-11-18 14:26:20 -0700
+
+Change the graphics to all be comic style drawings.
+
+Summary: Restyled the beam illustration and all three engineering plots as comic-style artwork with thick ink outlines, bright fills, halftone dots, bold callout labels, and illustrated supports and reactions. Styled the synchronized hover readouts to match.
+
+## 2026-11-18 14:30:48 -0700
+
+i like it but make all the words comic themed as well as the sliders
+
+Summary: Applied comic-style typography to interface and SVG labels, then restyled range sliders with bright striped tracks and outlined colorful thumbs. Updated controls, cards, and buttons to carry the illustration style through the whole app.
+
+## 2026-11-18 14:31:50 -0700
+
+Make it metric.
+
+## 2026-11-18 14:32:17 -0700
+
+Make a metric switch that can be flipped to change it metric.
+
+Summary: Added an accessible US customary/metric toggle. It converts beam and load inputs, section inertia labels, diagram axes and hover values, reactions, stresses, and deflections while preserving the existing internal calculation units.

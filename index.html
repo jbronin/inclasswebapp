@@ -6,39 +6,59 @@
   <title>Beam Designer</title>
   <style>
     :root {
-      --accent:#2563eb; --accent-dark:#1d4ed8; --ink:#172033;
-      --muted:#667085; --line:#dde3ed; --canvas:#f4f7fb;
+      --accent:#31b9ce; --accent-dark:#087f83; --ink:#172033;
+      --muted:#55515a; --line:#172033; --canvas:#fff5dd;
       --green:#16865b; --amber:#c88616; --red:#c43d3d;
     }
     * { box-sizing:border-box; }
     body {
       margin:0; min-width:320px; color:var(--ink); background:var(--canvas);
-      font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      font-family:"Comic Sans MS","Chalkboard SE","Comic Neue",cursive;
     }
     header {
-      height:68px; display:flex; align-items:center; padding:0 28px;
-      background:#fff; border-bottom:1px solid var(--line);
+      height:68px; display:flex; align-items:center; justify-content:space-between; padding:0 28px;
+      background:#fff9e9; border-bottom:3px solid var(--ink);
     }
-    .brand { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:750; letter-spacing:-.02em; }
+    .brand {
+      display:flex; align-items:center; gap:10px; font-size:19px;
+      font-weight:900; letter-spacing:.01em; text-shadow:1px 1px 0 #ffca4b;
+    }
     .brand-mark {
-      width:34px; height:34px; display:grid; place-items:center; border-radius:9px;
-      color:#fff; background:var(--accent); font-size:18px;
+      width:36px; height:36px; display:grid; place-items:center; border-radius:8px;
+      color:var(--ink); background:#ffca4b; border:2px solid var(--ink);
+      box-shadow:2px 2px 0 var(--ink); font-size:19px; font-weight:900;
     }
+    .unit-toggle { display:flex; align-items:center; gap:9px; font-size:13px; font-weight:900; }
+    .unit-toggle input { position:absolute; width:1px; height:1px; opacity:0; }
+    .switch-track {
+      position:relative; width:52px; height:28px; border:2px solid var(--ink);
+      border-radius:999px; background:#ffca4b; box-shadow:2px 2px 0 var(--ink);
+      cursor:pointer; transition:background .15s ease;
+    }
+    .switch-track::after {
+      content:""; position:absolute; top:2px; left:2px; width:18px; height:18px;
+      border:2px solid var(--ink); border-radius:50%; background:#fffdf5;
+      box-shadow:1px 1px 0 var(--ink); transition:transform .15s ease;
+    }
+    .unit-toggle input:checked + .switch-track { background:#31b9ce; }
+    .unit-toggle input:checked + .switch-track::after { transform:translateX(24px); }
+    .unit-toggle input:focus-visible + .switch-track { outline:3px dashed #e4572e; outline-offset:3px; }
     .layout { display:grid; grid-template-columns:330px minmax(0,1fr); min-height:calc(100vh - 68px); }
     .sidebar {
       height:calc(100vh - 68px); overflow-y:auto; padding:20px;
-      background:#fff; border-right:1px solid var(--line);
+      background:#fff9e9; border-right:3px solid var(--ink);
     }
     .main { min-width:0; padding:22px; }
     .card {
-      background:#fff; border:1px solid #e7ebf2; border-radius:12px;
-      box-shadow:0 3px 14px rgba(21,35,59,.055);
+      background:#fffdf5; border:2px solid var(--ink); border-radius:9px;
+      box-shadow:4px 4px 0 rgba(23,32,51,.18);
     }
-    .sidebar-section { padding:0 0 18px; margin:0 0 18px; border-bottom:1px solid #edf0f5; }
+    .sidebar-section { padding:0 0 18px; margin:0 0 18px; border-bottom:2px dashed #9a8d75; }
     .sidebar-section:last-child { margin-bottom:0; border-bottom:0; }
     .section-title {
       margin:0 0 12px; font-size:13px; font-weight:800;
       letter-spacing:.04em; text-transform:uppercase; color:#3d4a60;
+      text-shadow:1px 1px 0 #ffca4b;
     }
     .control { margin-bottom:14px; }
     .control:last-child { margin-bottom:0; }
@@ -51,37 +71,63 @@
     .radio-row.two { grid-template-columns:1fr 1fr; }
     .radio-option {
       display:flex; align-items:center; gap:8px; min-height:38px; padding:8px 10px;
-      border:1px solid var(--line); border-radius:8px; background:#fff;
+      border:2px solid var(--ink); border-radius:7px; background:#fffdf5;
+      box-shadow:2px 2px 0 rgba(23,32,51,.16);
       font-size:13px; cursor:pointer;
     }
     .radio-option:has(input:checked) {
-      border-color:#91b3f8; background:#f2f6ff; color:#1d4ed8; font-weight:700;
+      border-color:var(--ink); background:#d8f8f6; color:#075d66; font-weight:900;
     }
     input[type="radio"] { accent-color:var(--accent); }
     .sync-row { display:grid; grid-template-columns:1fr 82px; align-items:center; gap:10px; }
-    input[type="range"] { width:100%; accent-color:var(--accent); }
+    input[type="range"] {
+      width:100%; height:24px; appearance:none; -webkit-appearance:none;
+      background:transparent; cursor:pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height:11px; border:2px solid var(--ink); border-radius:999px;
+      background:repeating-linear-gradient(90deg,#ffca4b 0 15px,#ffe89b 15px 22px);
+      box-shadow:2px 2px 0 rgba(23,32,51,.2);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      width:23px; height:23px; margin-top:-8px; appearance:none; -webkit-appearance:none;
+      border:3px solid var(--ink); border-radius:50%; background:#31b9ce;
+      box-shadow:2px 2px 0 var(--ink);
+    }
+    input[type="range"]::-moz-range-track {
+      height:7px; border:2px solid var(--ink); border-radius:999px;
+      background:repeating-linear-gradient(90deg,#ffca4b 0 15px,#ffe89b 15px 22px);
+      box-shadow:2px 2px 0 rgba(23,32,51,.2);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width:17px; height:17px; border:3px solid var(--ink); border-radius:50%;
+      background:#31b9ce; box-shadow:2px 2px 0 var(--ink);
+    }
     input[type="number"] {
-      width:100%; height:38px; padding:7px 8px; border:1px solid var(--line);
-      border-radius:8px; color:var(--ink); background:#fff; font:inherit; font-size:13px;
+      width:100%; height:38px; padding:7px 8px; border:2px solid var(--ink);
+      border-radius:6px; color:var(--ink); background:#fffdf5; font:inherit; font-size:13px;
+      box-shadow:2px 2px 0 rgba(23,32,51,.16);
     }
     .load-card {
-      margin-top:9px; padding:10px; border:1px solid #e5e9f1;
-      border-radius:9px; background:#fafbfc;
+      margin-top:9px; padding:10px; border:2px solid var(--ink);
+      border-radius:7px; background:#fff8df; box-shadow:3px 3px 0 rgba(23,32,51,.13);
     }
     .load-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
     .load-name { font-size:12px; font-weight:800; }
     .icon-button, .text-button, .use-button { border:0; cursor:pointer; font:inherit; }
     .icon-button {
-      width:28px; height:28px; border-radius:7px; color:#7a8496;
-      background:transparent; font-size:18px;
+      width:28px; height:28px; border:2px solid var(--ink); border-radius:6px;
+      color:var(--ink); background:#ff7895; box-shadow:2px 2px 0 var(--ink);
+      font-size:18px; font-weight:900;
     }
-    .icon-button:hover { background:#edf1f7; }
+    .icon-button:hover { background:#ffabc0; }
     .add-row { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:9px; }
     .text-button {
-      min-height:36px; border:1px solid #ccd7ea; border-radius:8px;
-      color:var(--accent-dark); background:#fff; font-size:12px; font-weight:750;
+      min-height:36px; border:2px solid var(--ink); border-radius:7px;
+      color:var(--ink); background:#ffdf62; box-shadow:3px 3px 0 var(--ink);
+      font-size:12px; font-weight:900;
     }
-    .text-button:hover { background:#f4f7ff; }
+    .text-button:hover { background:#ffe994; }
     .material-options {
       display:grid; gap:6px; max-height:286px; overflow-y:auto; padding-right:3px;
     }
@@ -91,14 +137,20 @@
     .drawing-card { padding:16px 18px 10px; }
     .card-heading-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
     .card-heading { margin:0; font-size:14px; font-weight:800; }
-    .model-label { color:var(--muted); font-size:11px; }
-    .beam-svg { display:block; width:100%; height:168px; }
+    .model-label { color:var(--muted); font-size:11px; font-weight:700; }
+    .beam-svg {
+      display:block; width:100%; height:168px;
+      filter:drop-shadow(3px 4px 0 rgba(23,32,51,.12));
+    }
     .diagram-card { padding:12px 18px 8px; }
     .diagram-grid { display:grid; gap:2px; }
-    .diagram svg { display:block; width:100%; height:132px; }
+    .diagram svg {
+      display:block; width:100%; height:132px;
+      filter:drop-shadow(3px 4px 0 rgba(23,32,51,.12));
+    }
     .diagram-title {
       display:flex; align-items:baseline; justify-content:space-between; height:18px;
-      padding:0 2px; font-size:12px; font-weight:800;
+      padding:0 2px; font-size:12px; font-weight:900; text-shadow:1px 1px 0 #ffca4b;
     }
     .diagram-title span:last-child { color:var(--muted); font-size:10px; font-weight:600; }
     .checks-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
@@ -106,8 +158,8 @@
     .check-card:hover::after {
       content:attr(data-tooltip); position:absolute; z-index:5; left:16px;
       bottom:calc(100% - 8px); width:min(300px,calc(100% - 32px)); padding:9px 10px;
-      border-radius:8px; color:#fff; background:#253044;
-      box-shadow:0 8px 22px rgba(21,35,59,.18); font-size:11px; line-height:1.45;
+      border:2px solid var(--ink); border-radius:7px; color:var(--ink); background:#ffdf62;
+      box-shadow:3px 3px 0 var(--ink); font-size:11px; font-weight:700; line-height:1.45;
     }
     .check-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
     .check-name { font-size:13px; font-weight:800; }
@@ -128,17 +180,28 @@
     .suggestion-copy { font-size:12px; color:var(--muted); }
     .suggestion-copy strong { color:var(--ink); font-size:13px; }
     .use-button {
-      flex:none; min-height:36px; padding:0 13px; border-radius:8px;
-      color:#fff; background:var(--accent); font-size:12px; font-weight:800;
+      flex:none; min-height:36px; padding:0 13px; border:2px solid var(--ink); border-radius:7px;
+      color:var(--ink); background:#31b9ce; box-shadow:3px 3px 0 var(--ink);
+      font-size:12px; font-weight:900;
     }
     .use-button:hover { background:var(--accent-dark); }
+    .section-title,.card-heading,.check-name,.load-name,.suggestion-copy strong {
+      font-weight:900;
+      text-shadow:1px 1px 0 #ffca4b;
+    }
+    .beam-svg text,.diagram svg text {
+      font-family:"Comic Sans MS","Chalkboard SE","Comic Neue",cursive;
+    }
+    input:focus-visible,button:focus-visible,.radio-option:focus-within {
+      outline:3px dashed #e4572e; outline-offset:3px;
+    }
     .crosshair { pointer-events:none; }
     @media (max-width:900px) {
       .layout { grid-template-columns:280px minmax(0,1fr); }
       .main,.sidebar { padding:14px; }
     }
     @media (max-width:700px) {
-      header { height:58px; padding:0 16px; }
+      header { height:auto; min-height:58px; padding:8px 12px; flex-wrap:wrap; gap:8px; }
       .layout { display:block; }
       .sidebar { height:auto; border-right:0; border-bottom:1px solid var(--line); }
       .main { padding:12px; }
@@ -148,7 +211,15 @@
   </style>
 </head>
 <body>
-  <header><div class="brand"><div class="brand-mark">B</div>Beam Designer</div></header>
+  <header>
+    <div class="brand"><div class="brand-mark">B</div>Beam Designer</div>
+    <label class="unit-toggle">
+      <span>US customary</span>
+      <input id="unit-toggle" type="checkbox" role="switch" aria-label="Use metric units">
+      <span class="switch-track" aria-hidden="true"></span>
+      <span>Metric</span>
+    </label>
+  </header>
   <div class="layout">
     <aside class="sidebar" aria-label="Beam inputs">
       <section class="sidebar-section">
@@ -390,6 +461,63 @@
   </div>
 
   <script>
+    const UNIT_CONVERSIONS = {
+      feetPerMeter:1 / 0.3048,
+      kipsPerKilonewton:1 / 4.4482216152605,
+      kipFeetPerKilonewtonMeter:1 / 1.3558179483314,
+      kipPerFootPerKilonewtonPerMeter:1 / 14.593902937206,
+      inchesPerMillimeter:1 / 25.4,
+      ksiPerMegapascal:1 / 6.894757293168
+    };
+    let unitSystem = "us";
+
+    function toInternalLength(value) {
+      return unitSystem === "metric" ? value * UNIT_CONVERSIONS.feetPerMeter : value;
+    }
+
+    function toDisplayLength(value) {
+      return unitSystem === "metric" ? value / UNIT_CONVERSIONS.feetPerMeter : value;
+    }
+
+    function toInternalForce(value) {
+      return unitSystem === "metric" ? value * UNIT_CONVERSIONS.kipsPerKilonewton : value;
+    }
+
+    function toDisplayForce(value) {
+      return unitSystem === "metric" ? value / UNIT_CONVERSIONS.kipsPerKilonewton : value;
+    }
+
+    function toInternalDistributedLoad(value) {
+      return unitSystem === "metric"
+        ? value * UNIT_CONVERSIONS.kipPerFootPerKilonewtonPerMeter
+        : value;
+    }
+
+    function toDisplayDistributedLoad(value) {
+      return unitSystem === "metric"
+        ? value / UNIT_CONVERSIONS.kipPerFootPerKilonewtonPerMeter
+        : value;
+    }
+
+    function toDisplayMoment(value) {
+      return unitSystem === "metric"
+        ? value / UNIT_CONVERSIONS.kipFeetPerKilonewtonMeter
+        : value;
+    }
+
+    function toDisplayDeflection(value) {
+      return unitSystem === "metric" ? value * 25.4 : value;
+    }
+
+    function toDisplayStress(value) {
+      return unitSystem === "metric" ? value * 6.894757293168 : value;
+    }
+
+    function formatLength(value) {
+      const displayed = toDisplayLength(value);
+      return `${Number(displayed.toFixed(unitSystem === "metric" ? 3 : 2))} ${unitSystem === "metric" ? "m" : "ft"}`;
+    }
+
     const STEEL_SECTIONS = [
       { name:"W8x10", Ix:30.8, Sx:7.81, weight:10 },
       { name:"W10x12", Ix:53.8, Sx:10.9, weight:12 },
@@ -793,18 +921,21 @@
 
     function collectBeamModel() {
       const support = document.querySelector('input[name="support"]:checked').value;
-      const span = clamp(Number(document.getElementById("span-number").value) || 20, 4, 40);
+      const span = clamp(
+        toInternalLength(Number(document.getElementById("span-number").value) || toDisplayLength(20)),
+        4,
+        40
+      );
       const material = document.querySelector('input[name="material"]:checked').value;
       const limit = Number(document.querySelector('input[name="limit"]:checked').value);
       const pointLoads = [];
 
       document.querySelectorAll("#point-loads .load-card").forEach(card => {
-        const inputs = card.querySelectorAll("input");
         const magnitudeInput = card.querySelector('input[type="number"]:not([aria-label])');
         const positionInput = card.querySelector('input[aria-label]');
         pointLoads.push({
-          magnitude: clamp(Number(magnitudeInput && magnitudeInput.value) || 0, 0, 10000),
-          position: clamp(Number(positionInput && positionInput.value) || 10, 0, 50)
+          magnitude: clamp(toInternalForce(Number(magnitudeInput && magnitudeInput.value) || 0), 0, 10000),
+          position: clamp(toInternalLength(Number(positionInput && positionInput.value) || 0), 0, 50)
         });
       });
 
@@ -812,9 +943,9 @@
       document.querySelectorAll("#uniform-loads .load-card").forEach(card => {
         const numberInputs = card.querySelectorAll('input[type="number"]');
         uniformLoads.push({
-          magnitude:clamp(Number(numberInputs[0]?.value) || 0, 0, 10000),
-          start:clamp(Number(numberInputs[1]?.value) || 0, 0, 50),
-          end:clamp(Number(numberInputs[2]?.value) || span, 0, 50)
+          magnitude:clamp(toInternalDistributedLoad(Number(numberInputs[0]?.value) || 0), 0, 10000),
+          start:clamp(toInternalLength(Number(numberInputs[1]?.value) || 0), 0, 50),
+          end:clamp(toInternalLength(Number(numberInputs[2]?.value) || toDisplayLength(span)), 0, 50)
         });
       });
 
@@ -825,6 +956,128 @@
       const selectedName = document.querySelector('input[name="section"]:checked')?.value;
       const sections = model.material === "steel" ? STEEL_SECTIONS : LUMBER_SECTIONS;
       return sections.find(section => section.name === selectedName) || sections[0];
+    }
+
+    function displayNumber(value) {
+      return String(Number(value.toFixed(unitSystem === "metric" ? 3 : 4)));
+    }
+
+    function updateUnitLabels() {
+      const metric = unitSystem === "metric";
+      const lengthUnit = metric ? "m" : "ft";
+      const forceUnit = metric ? "kN" : "kip";
+      const distributedUnit = metric ? "kN/m" : "kip/ft";
+
+      document.querySelector('label[for="span-range"]').textContent = `Span (${lengthUnit})`;
+      document.querySelector('label[for="point-mag"]').textContent = `Magnitude (${forceUnit})`;
+      document.querySelector('label[for="point-position-range"]').textContent = `Position (${lengthUnit})`;
+      document.querySelector('label[for="uniform-mag"]').textContent = `Magnitude (${distributedUnit})`;
+      document.querySelector('label[for="uniform-start-range"]').textContent = `Start (${lengthUnit})`;
+      document.querySelector('label[for="uniform-end-range"]').textContent = `End (${lengthUnit})`;
+      document.getElementById("span-number").setAttribute("aria-label", `Span in ${metric ? "meters" : "feet"}`);
+      document.getElementById("point-position-number").setAttribute("aria-label", `Point load position in ${metric ? "meters" : "feet"}`);
+      document.getElementById("uniform-start-number").setAttribute("aria-label", `Uniform load start in ${metric ? "meters" : "feet"}`);
+      document.getElementById("uniform-end-number").setAttribute("aria-label", `Uniform load end in ${metric ? "meters" : "feet"}`);
+
+      document.querySelectorAll("#point-loads .load-card").forEach(card => {
+        const labels = card.querySelectorAll(".control-label");
+        if (labels[0]) labels[0].textContent = `Magnitude (${forceUnit})`;
+        if (labels[1]) labels[1].textContent = `Position (${lengthUnit})`;
+        card.querySelector('input[aria-label]')?.setAttribute(
+          "aria-label",
+          `Point load position in ${metric ? "meters" : "feet"}`
+        );
+      });
+
+      document.querySelectorAll("#uniform-loads .load-card").forEach(card => {
+        const labels = card.querySelectorAll(".control-label");
+        if (labels[0]) labels[0].textContent = `Magnitude (${distributedUnit})`;
+        if (labels[1]) labels[1].textContent = `Start (${lengthUnit})`;
+        if (labels[2]) labels[2].textContent = `End (${lengthUnit})`;
+        const fields = card.querySelectorAll('input[type="number"]');
+        fields[1]?.setAttribute("aria-label", `Uniform load start in ${metric ? "meters" : "feet"}`);
+        fields[2]?.setAttribute("aria-label", `Uniform load end in ${metric ? "meters" : "feet"}`);
+      });
+
+      const diagramUnits = document.querySelectorAll(".diagram-title span:last-child");
+      if (diagramUnits[0]) diagramUnits[0].textContent = metric ? "kN" : "kips";
+      if (diagramUnits[1]) diagramUnits[1].textContent = metric ? "kN·m" : "kip-ft";
+      if (diagramUnits[2]) diagramUnits[2].textContent = metric ? "mm" : "inches";
+
+      const sections = [...STEEL_SECTIONS, ...LUMBER_SECTIONS];
+      document.querySelectorAll('input[name="section"]').forEach(radio => {
+        const section = sections.find(item => item.name === radio.value);
+        const detail = radio.parentElement.querySelector("small");
+        if (!section || !detail) return;
+        const ix = metric ? section.Ix * 41.623142 : section.Ix;
+        detail.textContent = `Ix ${displayNumber(ix)} ${metric ? "cm⁴" : "in⁴"}`;
+      });
+    }
+
+    function setLengthPair(range, number, value, minimum, maximum) {
+      const rangeMin = toDisplayLength(minimum);
+      const rangeMax = toDisplayLength(maximum);
+      const displayValue = toDisplayLength(value);
+      const step = unitSystem === "metric" ? "0.001" : "1";
+      const numberStep = "0.0001";
+      range.min = displayNumber(rangeMin);
+      range.max = displayNumber(rangeMax);
+      range.step = step;
+      number.min = displayNumber(rangeMin);
+      number.max = displayNumber(rangeMax);
+      number.step = numberStep;
+      range.value = displayNumber(displayValue);
+      number.value = displayNumber(displayValue);
+    }
+
+    function writeModelToInputs(model) {
+      const spanRange = document.getElementById("span-range");
+      const spanNumber = document.getElementById("span-number");
+      setLengthPair(spanRange, spanNumber, model.span, 4, 40);
+
+      document.querySelectorAll("#point-loads .load-card").forEach((card, index) => {
+        const load = model.pointLoads[index];
+        if (!load) return;
+        const magnitude = card.querySelector('input[type="number"]:not([aria-label])');
+        const positionRange = card.querySelector('input[type="range"]');
+        const positionNumber = card.querySelector('input[type="number"][aria-label]');
+        magnitude.min = "0";
+        magnitude.max = unitSystem === "metric" ? displayNumber(toDisplayForce(10000)) : "10000";
+        magnitude.step = "0.001";
+        magnitude.value = displayNumber(toDisplayForce(load.magnitude));
+        setLengthPair(positionRange, positionNumber, load.position, 0, model.span);
+      });
+
+      document.querySelectorAll("#uniform-loads .load-card").forEach((card, index) => {
+        const load = model.uniformLoads[index];
+        if (!load) return;
+        const numbers = card.querySelectorAll('input[type="number"]');
+        const ranges = card.querySelectorAll('input[type="range"]');
+        numbers[0].min = "0";
+        numbers[0].max = unitSystem === "metric" ? displayNumber(toDisplayDistributedLoad(10000)) : "10000";
+        numbers[0].step = "0.0001";
+        numbers[0].value = displayNumber(toDisplayDistributedLoad(load.magnitude));
+        setLengthPair(ranges[0], numbers[1], load.start, 0, 50);
+        setLengthPair(ranges[1], numbers[2], load.end, 0, 50);
+      });
+    }
+
+    function updatePointLoadPositionBounds() {
+      const span = clamp(
+        toInternalLength(Number(document.getElementById("span-number").value) || toDisplayLength(20)),
+        4,
+        40
+      );
+      document.querySelectorAll("#point-loads .load-card").forEach(card => {
+        const range = card.querySelector('input[type="range"]');
+        const number = card.querySelector('input[type="number"][aria-label]');
+        if (!range || !number) return;
+        const max = displayNumber(toDisplayLength(span));
+        range.max = max;
+        number.max = max;
+        if (Number(range.value) > Number(max)) range.value = max;
+        if (Number(number.value) > Number(max)) number.value = max;
+      });
     }
 
     function drawingFunctionsEnabled() {
@@ -843,31 +1096,49 @@
       const beamY = 84;
       let markup = "";
 
-      markup += `<line x1="${left}" y1="${beamY}" x2="${right}" y2="${beamY}" stroke="#344054" stroke-width="7" stroke-linecap="round"/>`;
+      markup += `
+        <line x1="${left}" y1="${beamY}" x2="${right}" y2="${beamY}" stroke="#172033" stroke-width="16" stroke-linecap="round"/>
+        <line x1="${left}" y1="${beamY}" x2="${right}" y2="${beamY}" stroke="#ffca4b" stroke-width="10" stroke-linecap="round"/>`;
 
       if (model.support === "cantilever") {
         markup += `
-          <rect x="${left - 18}" y="54" width="18" height="60" rx="2" fill="#344054"/>
-          <g stroke="#98a2b3" stroke-width="2">
-            <line x1="${left - 26}" y1="58" x2="${left - 10}" y2="74"/>
-            <line x1="${left - 26}" y1="74" x2="${left - 10}" y2="90"/>
-            <line x1="${left - 26}" y1="90" x2="${left - 10}" y2="106"/>
+          <rect x="${left - 20}" y="53" width="22" height="63" rx="2" fill="#172033"/>
+          <rect x="${left - 16}" y="57" width="14" height="55" fill="#ffca4b"/>
+          <g stroke="#172033" stroke-width="2.5">
+            <line x1="${left - 23}" y1="58" x2="${left - 7}" y2="74"/>
+            <line x1="${left - 23}" y1="74" x2="${left - 7}" y2="90"/>
+            <line x1="${left - 23}" y1="90" x2="${left - 7}" y2="106"/>
           </g>`;
       } else {
         markup += `
-          <polygon points="${left},${beamY} ${left - 22},116 ${left + 22},116" fill="#cfd6e2"/>
-          <rect x="${left - 29}" y="116" width="58" height="5" rx="2" fill="#344054"/>
-          <polygon points="${right},${beamY} ${right - 22},116 ${right + 22},116" fill="#cfd6e2"/>
-          <rect x="${right - 29}" y="116" width="58" height="5" rx="2" fill="#344054"/>`;
+          <polygon points="${left},${beamY} ${left - 22},116 ${left + 22},116" fill="#ff7895" stroke="#172033" stroke-width="3" stroke-linejoin="round"/>
+          <rect x="${left - 30}" y="116" width="60" height="6" rx="2" fill="#ffca4b" stroke="#172033" stroke-width="2.5"/>
+          <polygon points="${right},${beamY} ${right - 22},116 ${right + 22},116" fill="#ff7895" stroke="#172033" stroke-width="3" stroke-linejoin="round"/>
+          <rect x="${right - 30}" y="116" width="60" height="6" rx="2" fill="#ffca4b" stroke="#172033" stroke-width="2.5"/>
+          <g stroke="#172033" stroke-width="1.5">
+            <line x1="${left - 24}" y1="122" x2="${left - 17}" y2="128"/>
+            <line x1="${left - 8}" y1="122" x2="${left - 1}" y2="128"/>
+            <line x1="${left + 8}" y1="122" x2="${left + 15}" y2="128"/>
+            <line x1="${left + 24}" y1="122" x2="${left + 31}" y2="128"/>
+            <line x1="${right - 24}" y1="122" x2="${right - 17}" y2="128"/>
+            <line x1="${right - 8}" y1="122" x2="${right - 1}" y2="128"/>
+            <line x1="${right + 8}" y1="122" x2="${right + 15}" y2="128"/>
+            <line x1="${right + 24}" y1="122" x2="${right + 31}" y2="128"/>
+          </g>`;
       }
 
       for (const load of model.pointLoads) {
         if (load.magnitude <= 0 || load.position < 0 || load.position > model.span) continue;
         const x = mapBeamX(load.position, model.span);
+        const magnitude = toDisplayForce(load.magnitude);
+        const forceUnit = unitSystem === "metric" ? "kN" : "k";
         markup += `
-          <line x1="${x}" y1="30" x2="${x}" y2="72" stroke="#2563eb" stroke-width="3"/>
-          <path d="M${x - 5} 72 L${x} ${beamY} L${x + 5} 72 Z" fill="#2563eb"/>
-          <text x="${x}" y="20" text-anchor="middle" fill="#344054" font-size="11" font-weight="700">${load.magnitude.toFixed(load.magnitude % 1 ? 2 : 1)} k</text>`;
+          <line x1="${x}" y1="30" x2="${x}" y2="72" stroke="#172033" stroke-width="7"/>
+          <line x1="${x}" y1="30" x2="${x}" y2="72" stroke="#31b9ce" stroke-width="3.5"/>
+          <path d="M${x - 8} 68 L${x} ${beamY} L${x + 8} 68 Z" fill="#172033"/>
+          <path d="M${x - 4.5} 70 L${x} 80 L${x + 4.5} 70 Z" fill="#31b9ce"/>
+          <rect x="${x - 23}" y="7" width="46" height="20" rx="7" fill="#fffdf5" stroke="#172033" stroke-width="2"/>
+          <text x="${x}" y="21" text-anchor="middle" fill="#172033" font-size="11" font-weight="900">${magnitude.toFixed(magnitude % 1 ? 2 : 1)} ${forceUnit}</text>`;
       }
 
       for (const load of model.uniformLoads) {
@@ -878,10 +1149,18 @@
         const leftX = mapBeamX(a, model.span);
         const rightX = mapBeamX(b, model.span);
         const spacing = clamp((rightX - leftX) / 12, 18, 31);
+        const magnitude = toDisplayDistributedLoad(load.magnitude);
+        const distributedUnit = unitSystem === "metric" ? "kN/m" : "k/ft";
         for (let x = leftX + spacing / 2; x < rightX; x += spacing) {
-          markup += `<line x1="${x}" y1="34" x2="${x}" y2="72" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-down)"/>`;
+          markup += `
+            <line x1="${x}" y1="37" x2="${x}" y2="66" stroke="#172033" stroke-width="6"/>
+            <line x1="${x}" y1="37" x2="${x}" y2="66" stroke="#31b9ce" stroke-width="2.8"/>
+            <path d="M${x - 7} 63 L${x} 78 L${x + 7} 63 Z" fill="#172033"/>
+            <path d="M${x - 3.8} 65 L${x} 73 L${x + 3.8} 65 Z" fill="#31b9ce"/>`;
         }
-        markup += `<text x="${(leftX + rightX) / 2}" y="24" text-anchor="middle" fill="#344054" font-size="11" font-weight="700">${load.magnitude.toFixed(load.magnitude % 1 ? 2 : 1)} k/ft</text>`;
+        markup += `
+          <rect x="${(leftX + rightX) / 2 - 30}" y="5" width="60" height="20" rx="7" fill="#fffdf5" stroke="#172033" stroke-width="2"/>
+          <text x="${(leftX + rightX) / 2}" y="19" text-anchor="middle" fill="#172033" font-size="11" font-weight="900">${magnitude.toFixed(magnitude % 1 ? 2 : 1)} ${distributedUnit}</text>`;
       }
 
       markup += `
@@ -889,22 +1168,46 @@
         <line x1="${left}" y1="124" x2="${left}" y2="132" stroke="#98a2b3"/>
         <line x1="${mapBeamX(model.span / 2, model.span)}" y1="124" x2="${mapBeamX(model.span / 2, model.span)}" y2="132" stroke="#98a2b3"/>
         <line x1="${right}" y1="124" x2="${right}" y2="132" stroke="#98a2b3"/>
-        <text x="${left}" y="145" text-anchor="middle" fill="#667085" font-size="11">0 ft</text>
-        <text x="${mapBeamX(model.span / 2, model.span)}" y="145" text-anchor="middle" fill="#667085" font-size="11">${(model.span / 2).toFixed(model.span % 2 ? 1 : 0)} ft</text>
-        <text x="${right}" y="145" text-anchor="middle" fill="#667085" font-size="11">${model.span} ft</text>`;
+        <text x="${left}" y="145" text-anchor="middle" fill="#667085" font-size="11">0 ${unitSystem === "metric" ? "m" : "ft"}</text>
+        <text x="${mapBeamX(model.span / 2, model.span)}" y="145" text-anchor="middle" fill="#667085" font-size="11">${formatLength(model.span / 2)}</text>
+        <text x="${right}" y="145" text-anchor="middle" fill="#667085" font-size="11">${formatLength(model.span)}</text>`;
 
       if (model.support === "cantilever") {
+        const reaction = toDisplayForce(result.reactions.left);
+        const fixedMoment = toDisplayMoment(result.reactions.fixedMoment);
         markup += `
-          <text x="${left + 12}" y="25" text-anchor="start" fill="#344054" font-size="12" font-weight="700">R = ${result.reactions.left.toFixed(1)} k</text>
-          <text x="${left + 12}" y="154" text-anchor="start" fill="#344054" font-size="11" font-weight="700">Mᶠ = ${result.reactions.fixedMoment.toFixed(1)} kip-ft</text>`;
+          <line x1="${left + 22}" y1="111" x2="${left + 22}" y2="94" stroke="#172033" stroke-width="7"/>
+          <line x1="${left + 22}" y1="111" x2="${left + 22}" y2="94" stroke="#5bcb85" stroke-width="3.5"/>
+          <path d="M${left + 14} 98 L${left + 22} 84 L${left + 30} 98 Z" fill="#172033"/>
+          <path d="M${left + 18} 97 L${left + 22} 89 L${left + 26} 97 Z" fill="#5bcb85"/>
+          <rect x="${left + 34}" y="94" width="78" height="20" rx="7" fill="#fffdf5" stroke="#172033" stroke-width="2"/>
+          <text x="${left + 73}" y="108" text-anchor="middle" fill="#172033" font-size="11" font-weight="900">R ${reaction.toFixed(1)} ${unitSystem === "metric" ? "kN" : "k"}</text>
+          <path d="M${left + 34} 45 C${left + 13} 36 ${left - 1} 52 ${left + 8} 68" fill="none" stroke="#172033" stroke-width="4" marker-end="url(#moment-arrow)"/>
+          <rect x="${left + 36}" y="30" width="116" height="20" rx="7" fill="#fffdf5" stroke="#172033" stroke-width="2"/>
+          <text x="${left + 94}" y="44" text-anchor="middle" fill="#172033" font-size="10" font-weight="900">Mᶠ ${fixedMoment.toFixed(1)} ${unitSystem === "metric" ? "kN·m" : "kip-ft"}</text>`;
       } else {
+        const leftReaction = toDisplayForce(result.reactions.left);
+        const rightReaction = toDisplayForce(result.reactions.right);
         markup += `
-          <text x="${left}" y="25" text-anchor="middle" fill="#344054" font-size="12" font-weight="700">Rₗ = ${result.reactions.left.toFixed(1)} k</text>
-          <text x="${right}" y="25" text-anchor="middle" fill="#344054" font-size="12" font-weight="700">Rᵣ = ${result.reactions.right.toFixed(1)} k</text>`;
+          <line x1="${left}" y1="111" x2="${left}" y2="96" stroke="#172033" stroke-width="7"/>
+          <line x1="${left}" y1="111" x2="${left}" y2="96" stroke="#5bcb85" stroke-width="3.5"/>
+          <path d="M${left - 8} 100 L${left} 84 L${left + 8} 100 Z" fill="#172033"/>
+          <path d="M${left - 4} 98 L${left} 90 L${left + 4} 98 Z" fill="#5bcb85"/>
+          <line x1="${right}" y1="111" x2="${right}" y2="96" stroke="#172033" stroke-width="7"/>
+          <line x1="${right}" y1="111" x2="${right}" y2="96" stroke="#5bcb85" stroke-width="3.5"/>
+          <path d="M${right - 8} 100 L${right} 84 L${right + 8} 100 Z" fill="#172033"/>
+          <path d="M${right - 4} 98 L${right} 90 L${right + 4} 98 Z" fill="#5bcb85"/>
+          <rect x="${left - 32}" y="32" width="64" height="20" rx="7" fill="#fffdf5" stroke="#172033" stroke-width="2"/>
+          <text x="${left}" y="46" text-anchor="middle" fill="#172033" font-size="11" font-weight="900">Rₗ ${leftReaction.toFixed(1)} ${unitSystem === "metric" ? "kN" : "k"}</text>
+          <rect x="${right - 32}" y="32" width="64" height="20" rx="7" fill="#fffdf5" stroke="#172033" stroke-width="2"/>
+          <text x="${right}" y="46" text-anchor="middle" fill="#172033" font-size="11" font-weight="900">Rᵣ ${rightReaction.toFixed(1)} ${unitSystem === "metric" ? "kN" : "k"}</text>`;
       }
 
       svg.innerHTML = `
-        <defs><marker id="arrow-down" markerWidth="8" markerHeight="8" refX="4" refY="7" orient="auto"><path d="M1 1 L4 7 L7 1 Z" fill="#2563eb"/></marker></defs>
+        <defs>
+          <marker id="arrow-down" markerWidth="8" markerHeight="8" refX="4" refY="7" orient="auto"><path d="M1 1 L4 7 L7 1 Z" fill="#172033"/></marker>
+          <marker id="moment-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M1 1 L8 4.5 L1 8 Z" fill="#172033"/></marker>
+        </defs>
         ${markup}`;
     }
 
@@ -930,11 +1233,14 @@
       const scale = field === "deflection"
         ? Math.max(Math.abs(maximum), 0.001) * 1.25
         : Math.max(Math.abs(maximum), 1) * 1.25;
-      const baselineValue = field === "deflection" ? 0 : 0;
+      const palette = {
+        shear:{ fill:"#41c9c4", dots:"#087f83" },
+        moment:{ fill:"#ffbf47", dots:"#9b5b00" },
+        deflection:{ fill:"#ff7895", dots:"#a91f4b" }
+      }[field];
       const mapX = point => left + (point.x / model.span) * (right - left);
       const mapY = point => {
         const value = field === "deflection" ? point.y : point[field];
-        if (field === "deflection") return baseline - (value / scale) * 48;
         return baseline - (value / scale) * 48;
       };
 
@@ -946,31 +1252,58 @@
 
       const maxX = maximumPoint ? maximumPoint.x : model.span / 2;
       const maxY = maximumPoint ? mapY(maximumPoint) : baseline;
+      const displayedMaximum = field === "shear" ? toDisplayForce(maximum)
+        : field === "moment" ? toDisplayMoment(maximum)
+        : toDisplayDeflection(maximum);
+      const displayUnits = field === "shear"
+        ? (unitSystem === "metric" ? "kN" : "kips")
+        : field === "moment"
+          ? (unitSystem === "metric" ? "kN·m" : "kip-ft")
+          : (unitSystem === "metric" ? "mm" : "in");
       const labelValue = field === "deflection"
-        ? `${maximum >= 0 ? "" : "−"}${Math.abs(maximum).toFixed(3)}`
-        : `${maximum >= 0 ? "+" : "−"}${Math.abs(maximum).toFixed(field === "moment" ? 1 : 1)}`;
+        ? `${displayedMaximum >= 0 ? "" : "−"}${Math.abs(displayedMaximum).toFixed(unitSystem === "metric" ? 1 : 3)}`
+        : `${displayedMaximum >= 0 ? "+" : "−"}${Math.abs(displayedMaximum).toFixed(1)}`;
+      const maxLabel = `${labelValue} ${displayUnits} at ${formatLength(maxX)}`;
+      const labelWidth = Math.min(230, Math.max(100, maxLabel.length * 6.1 + 18));
+      const labelX = clamp(mapX(maximumPoint || {x:maxX}) - labelWidth / 2, left + 3, right - labelWidth - 3);
+      const labelY = maxY < 48 ? Math.min(bottom - 25, maxY + 10) : maxY - 29;
+      const dotPattern = `${svgId}-halftone`;
 
       svg.innerHTML = `
-        <rect x="${left}" y="${top}" width="${right-left}" height="${bottom-top}" fill="#fafbfe"/>
-        <line x1="${left}" y1="${baseline}" x2="${right}" y2="${baseline}" stroke="#aeb7c5"/>
-        <line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" stroke="#dfe4ec"/>
-        <line x1="${left + (right-left)/2}" y1="${top}" x2="${left + (right-left)/2}" y2="${bottom}" stroke="#edf0f5" stroke-dasharray="3 5"/>
-        <line x1="${right}" y1="${top}" x2="${right}" y2="${bottom}" stroke="#dfe4ec"/>
-        <path d="${path}" fill="#84a9f4" fill-opacity=".55" stroke="#2563eb" stroke-width="2"/>
-        <circle cx="${mapX(maximumPoint || {x:maxX})}" cy="${maxY}" r="3.5" fill="#2563eb"/>
-        <text x="${mapX(maximumPoint || {x:maxX})}" y="${Math.max(10, maxY - 8)}" text-anchor="middle" fill="#344054" font-size="11" font-weight="750">${labelValue} ${units} at ${maxX.toFixed(maxX % 1 ? 2 : 0)} ft</text>
-        <text x="${left}" y="128" text-anchor="middle" fill="#667085" font-size="10">0</text>
-        <text x="${left + (right-left)/2}" y="128" text-anchor="middle" fill="#667085" font-size="10">${(model.span/2).toFixed(model.span%2 ? 1 : 0)} ft</text>
-        <text x="${right}" y="128" text-anchor="middle" fill="#667085" font-size="10">${model.span} ft</text>
-        <line class="crosshair" x1="${left + (right-left)/2}" y1="${top}" x2="${left + (right-left)/2}" y2="${bottom}" stroke="#94a3b8" stroke-dasharray="4 4"/>
-        <text class="hover-value" x="${right-4}" y="8" text-anchor="end" fill="#667085" font-size="10"></text>`;
+        <defs>
+          <pattern id="${dotPattern}" width="8" height="8" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.25" fill="${palette.dots}" opacity=".28"/>
+          </pattern>
+        </defs>
+        <rect x="${left}" y="${top}" width="${right-left}" height="${bottom-top}" rx="7" fill="#fffdf5" stroke="#172033" stroke-width="2.5"/>
+        <rect x="${left+2}" y="${top+2}" width="${right-left-4}" height="${bottom-top-4}" rx="6" fill="url(#${dotPattern})"/>
+        <line x1="${left}" y1="${baseline}" x2="${right}" y2="${baseline}" stroke="#172033" stroke-width="2.5"/>
+        <line x1="${left}" y1="${top}" x2="${left}" y2="${bottom}" stroke="#172033" stroke-width="2"/>
+        <line x1="${left + (right-left)/2}" y1="${top}" x2="${left + (right-left)/2}" y2="${bottom}" stroke="#172033" stroke-opacity=".22" stroke-width="1.5" stroke-dasharray="4 5"/>
+        <line x1="${right}" y1="${top}" x2="${right}" y2="${bottom}" stroke="#172033" stroke-width="2"/>
+        <path d="${path}" fill="${palette.fill}" fill-opacity=".88" stroke="#172033" stroke-width="3" stroke-linejoin="round"/>
+        <path d="${path}" fill="url(#${dotPattern})" stroke="none"/>
+        <circle cx="${mapX(maximumPoint || {x:maxX})}" cy="${maxY}" r="6" fill="#fffdf5" stroke="#172033" stroke-width="3"/>
+        <circle cx="${mapX(maximumPoint || {x:maxX})}" cy="${maxY}" r="2.5" fill="#172033"/>
+        <g>
+          <rect x="${labelX}" y="${labelY}" width="${labelWidth}" height="21" rx="7" fill="#ffdf62" stroke="#172033" stroke-width="2.5"/>
+          <text x="${labelX + labelWidth/2}" y="${labelY + 14}" text-anchor="middle" fill="#172033" font-size="10" font-weight="900">${maxLabel}</text>
+        </g>
+        <text x="${left}" y="128" text-anchor="middle" fill="#172033" font-size="10" font-weight="800">0</text>
+        <text x="${left + (right-left)/2}" y="128" text-anchor="middle" fill="#172033" font-size="10" font-weight="800">${formatLength(model.span/2)}</text>
+        <text x="${right}" y="128" text-anchor="middle" fill="#172033" font-size="10" font-weight="800">${formatLength(model.span)}</text>
+        <line class="crosshair" x1="${left + (right-left)/2}" y1="${top}" x2="${left + (right-left)/2}" y2="${bottom}" stroke="#172033" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <g class="hover-readout" visibility="hidden">
+          <rect x="${left+8}" y="${top+7}" width="190" height="20" rx="7" fill="#ffdf62" stroke="#172033" stroke-width="2"/>
+          <text class="hover-value" x="${left+103}" y="${top+21}" text-anchor="middle" fill="#172033" font-size="9" font-weight="900"></text>
+        </g>`;
     }
 
     function drawCalculatedGraphics(model, result) {
       drawBeam(model, result);
-      drawAreaDiagram("shear-diagram", result.curve, "shear", model, result, "kips", "Shear");
-      drawAreaDiagram("moment-diagram", result.curve, "moment", model, result, "kip-ft", "Moment");
-      drawAreaDiagram("deflection-diagram", result.deflection.map(point => ({x:point.x, y:point.y})), "deflection", model, result, "in", "Deflection");
+      drawAreaDiagram("shear-diagram", result.curve, "shear", model, result, "", "Shear");
+      drawAreaDiagram("moment-diagram", result.curve, "moment", model, result, "", "Moment");
+      drawAreaDiagram("deflection-diagram", result.deflection.map(point => ({x:point.x, y:point.y})), "deflection", model, result, "", "Deflection");
     }
 
     function updateCalculationDisplay() {
@@ -982,23 +1315,21 @@
       drawCalculatedGraphics(model, result);
       const modelLabel = document.querySelector(".model-label");
       modelLabel.textContent =
-        `${model.span} ft span · ${model.support === "simple" ? "Simply supported" : "Cantilever"} · ${section.name}`;
-
-      const reactionTexts = document.querySelectorAll(".beam-svg text");
-      if (model.support === "cantilever") {
-        reactionTexts[3] && (reactionTexts[3].textContent = `R = ${result.reactions.left.toFixed(1)} k`);
-        reactionTexts[4] && (reactionTexts[4].textContent = `Mᶠ = ${result.reactions.fixedMoment.toFixed(1)} kip-ft`);
-      } else {
-        reactionTexts[3] && (reactionTexts[3].textContent = `Rₗ = ${result.reactions.left.toFixed(1)} k`);
-        reactionTexts[4] && (reactionTexts[4].textContent = `Rᵣ = ${result.reactions.right.toFixed(1)} k`);
-      }
+        `${formatLength(model.span)} span · ${model.support === "simple" ? "Simply supported" : "Cantilever"} · ${section.name}`;
 
       const checkCards = document.querySelectorAll(".check-card");
       const bendingCard = checkCards[0];
+      const stressUnit = unitSystem === "metric" ? "MPa" : "ksi";
       bendingCard.querySelector(".check-values > div:first-child strong").textContent =
-        `${result.bendingStress.toFixed(2)} ksi`;
+        `${toDisplayStress(result.bendingStress).toFixed(2)} ${stressUnit}`;
       bendingCard.querySelector(".allowable strong").textContent =
-        `${result.allowableStress.toFixed(3)} ksi`;
+        `${toDisplayStress(result.allowableStress).toFixed(2)} ${stressUnit}`;
+      bendingCard.setAttribute(
+        "data-tooltip",
+        unitSystem === "metric"
+          ? "Bending stress is converted to MPa. PASS when calculated stress is no greater than the material allowable."
+          : "fb = |Mmax| × 12 / Sx. PASS when bending stress is no greater than the material allowable."
+      );
       const bendingStatus = bendingCard.querySelector(".pass");
       bendingStatus.textContent = result.bendingPass ? "PASS" : "FAIL";
       bendingStatus.style.background = result.bendingPass ? "#daf4e8" : "#ffe1e1";
@@ -1012,11 +1343,15 @@
 
       const deflectionCard = checkCards[1];
       deflectionCard.querySelector(".check-values > div:first-child strong").textContent =
-        `${Math.abs(result.maxDeflection.value).toFixed(3)} in`;
+        `${Math.abs(toDisplayDeflection(result.maxDeflection.value)).toFixed(unitSystem === "metric" ? 2 : 3)} ${unitSystem === "metric" ? "mm" : "in"}`;
       deflectionCard.querySelector(".allowable strong").textContent =
-        `${result.deflectionLimit.toFixed(3)} in`;
+        `${toDisplayDeflection(result.deflectionLimit).toFixed(unitSystem === "metric" ? 2 : 3)} ${unitSystem === "metric" ? "mm" : "in"}`;
       deflectionCard.querySelector(".allowable").firstChild.textContent =
         `Allowable (L/${model.limit})`;
+      deflectionCard.setAttribute(
+        "data-tooltip",
+        `ymax is maximum deflection. The limit is L/${model.limit}, with span L in ${unitSystem === "metric" ? "millimeters" : "inches"}.`
+      );
       const deflectionStatus = deflectionCard.querySelector(".pass");
       deflectionStatus.textContent = result.deflectionPass ? "PASS" : "FAIL";
       deflectionStatus.style.background = result.deflectionPass ? "#daf4e8" : "#ffe1e1";
@@ -1070,17 +1405,18 @@
     syncPair("uniform-end-range","uniform-end-number");
 
     function syncPointPositionBounds() {
-      const span = clamp(Number(document.getElementById("span-number").value) || 20, 4, 40);
-      document.querySelectorAll("#point-loads .load-card").forEach(card => {
-        const range = card.querySelector('input[type="range"]');
-        const numberInput = card.querySelector('input[type="number"][aria-label]');
-        if (!range || !numberInput) return;
-        range.max = String(span);
-        numberInput.max = String(span);
-        if (Number(range.value) > span) range.value = String(span);
-        if (Number(numberInput.value) > span) numberInput.value = String(span);
-      });
+      updatePointLoadPositionBounds();
     }
+
+    document.getElementById("unit-toggle").addEventListener("change", event => {
+      const model = collectBeamModel();
+      unitSystem = event.currentTarget.checked ? "metric" : "us";
+      updateUnitLabels();
+      writeModelToInputs(model);
+      updateCalculationDisplay();
+    });
+
+    updateUnitLabels();
 
     document.querySelectorAll('input[name="material"]').forEach((radio) => {
       radio.addEventListener("change", () => {
@@ -1128,6 +1464,11 @@
       range.addEventListener("input", () => { numberInput.value = range.value; });
       numberInput.addEventListener("input", () => { range.value = numberInput.value; });
       container.appendChild(card);
+      updateUnitLabels();
+      setLengthPair(range, numberInput, defaultPosition, 0, model.span);
+      const magnitudeInput = card.querySelector('input[type="number"]:not([aria-label])');
+      magnitudeInput.max = unitSystem === "metric" ? displayNumber(toDisplayForce(10000)) : "10000";
+      magnitudeInput.step = "0.001";
       updateCalculationDisplay();
     });
 
@@ -1159,6 +1500,14 @@
         numberInput.addEventListener("input", () => { range.value = numberInput.value; });
       });
       container.appendChild(card);
+      updateUnitLabels();
+      const numberInputs = card.querySelectorAll('input[type="number"]');
+      const ranges = card.querySelectorAll('input[type="range"]');
+      const magnitudeInput = numberInputs[0];
+      magnitudeInput.max = unitSystem === "metric" ? displayNumber(toDisplayDistributedLoad(10000)) : "10000";
+      magnitudeInput.step = "0.0001";
+      setLengthPair(ranges[0], numberInputs[1], 0, 0, 50);
+      setLengthPair(ranges[1], numberInputs[2], model.span, 0, 50);
       updateCalculationDisplay();
     });
 
@@ -1189,11 +1538,23 @@
         const momentLabel = document.querySelector("#moment-diagram .hover-value");
         const deflectionLabel = document.querySelector("#deflection-diagram .hover-value");
         if (shearLabel) shearLabel.textContent =
-          `x ${nearestCurve.x.toFixed(1)} ft · V ${nearestCurve.shear.toFixed(2)} k`;
+          `x ${formatLength(nearestCurve.x)} · V ${toDisplayForce(nearestCurve.shear).toFixed(2)} ${unitSystem === "metric" ? "kN" : "k"}`;
         if (momentLabel) momentLabel.textContent =
-          `M ${nearestCurve.moment.toFixed(2)} kip-ft`;
+          `M ${toDisplayMoment(nearestCurve.moment).toFixed(2)} ${unitSystem === "metric" ? "kN·m" : "kip-ft"}`;
         if (deflectionLabel) deflectionLabel.textContent =
-          `y ${nearestDeflection.y.toFixed(3)} in`;
+          `y ${toDisplayDeflection(nearestDeflection.y).toFixed(unitSystem === "metric" ? 2 : 3)} ${unitSystem === "metric" ? "mm" : "in"}`;
+        document.querySelectorAll(".hover-readout").forEach(group => {
+          group.setAttribute("visibility", "visible");
+        });
+      });
+      svg.addEventListener("mouseleave", () => {
+        document.querySelectorAll(".hover-readout").forEach(group => {
+          group.setAttribute("visibility", "hidden");
+        });
+        document.querySelectorAll(".crosshair").forEach(line => {
+          line.setAttribute("x1", 450);
+          line.setAttribute("x2", 450);
+        });
       });
     });
 
